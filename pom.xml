@@ -5,34 +5,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.github.wglanzer.annosave</groupId>
-  <artifactId>annosave</artifactId>
+  <artifactId>annosave-parent</artifactId>
   <version>1.0</version>
-
-  <dependencies>
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-      <version>2.6.2</version>
-    </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>21.0</version>
-    </dependency>
-
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.5</version>
-    </dependency>
-  </dependencies>
+  <packaging>pom</packaging>
 
   <build>
     <plugins>
@@ -46,4 +21,8 @@
       </plugin>
     </plugins>
   </build>
+
+  <modules>
+    <module>annosave-core</module>
+  </modules>
 </project>
