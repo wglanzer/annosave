@@ -7,7 +7,7 @@ import com.sun.istack.internal.NotNull;
 import java.io.*;
 
 /**
- * Contains all API-Methods for AnnoSave
+ * Contains all common API-Methods for AnnoSave
  *
  * @author W.Glanzer, 13.09.2017
  */

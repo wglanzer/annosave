@@ -120,6 +120,16 @@ public class Test_AnnoSaveConverter
     Assert.assertEquals(2, checks);
   }
 
+  @Test
+  public void test_writeReadZip() throws Exception
+  {
+    File zipFile = new File("target/classes/test.zip");
+    zipFile.deleteOnExit();
+    IAnnotationContainer[] containersOrig = AnnoSaveGZip.write(new Class[]{TestVersionContainerImpl.class, TestVersionContainerImpl2.class}, zipFile);
+    IAnnotationContainer[] containersRead = AnnoSaveGZip.read(zipFile);
+    Assert.assertArrayEquals(containersOrig, containersRead);
+  }
+
   private Map<String, IAnnotationParameter> _toMap(IAnnotationParameter[] pParameters)
   {
     return Arrays.stream(pParameters).collect(Collectors.toMap(IAnnotationParameter::getName, pParam -> pParam));
