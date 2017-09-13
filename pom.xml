@@ -9,6 +9,16 @@
   <version>1.0</version>
   <packaging>pom</packaging>
 
+  <name>AnnoSave: Parent</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.jetbrains</groupId>
+      <artifactId>annotations</artifactId>
+      <version>13.0</version>
+    </dependency>
+  </dependencies>
+
   <build>
     <plugins>
       <plugin>

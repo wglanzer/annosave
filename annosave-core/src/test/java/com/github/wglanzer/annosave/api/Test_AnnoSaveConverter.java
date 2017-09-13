@@ -2,9 +2,9 @@ package com.github.wglanzer.annosave.api;
 
 import com.github.wglanzer.annosave.api.testcontainer.*;
 import com.google.common.base.Charsets;
-import com.sun.istack.internal.Nullable;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.commons.io.output.WriterOutputStream;
+import org.jetbrains.annotations.Nullable;
 import org.junit.*;
 
 import java.io.*;

@@ -1,7 +1,7 @@
 package com.github.wglanzer.annosave.api;
 
-import com.sun.istack.internal.NotNull;
 import org.apache.commons.io.output.CloseShieldOutputStream;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.util.*;

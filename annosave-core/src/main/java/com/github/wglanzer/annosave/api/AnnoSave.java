@@ -2,7 +2,7 @@ package com.github.wglanzer.annosave.api;
 
 import com.github.wglanzer.annosave.impl.*;
 import com.github.wglanzer.annosave.impl.structure.SAnnotationContainer;
-import com.sun.istack.internal.NotNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 
