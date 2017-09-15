@@ -1,5 +1,6 @@
 package com.github.wglanzer.annosave.impl.converter;
 
+import com.github.wglanzer.annosave.api.EContainerType;
 import com.github.wglanzer.annosave.impl.structure.*;
 
 import java.lang.annotation.Annotation;
@@ -23,6 +24,7 @@ class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
     SAnnotationContainer container = new SAnnotationContainer();
     container.setName(pClass.getSimpleName());
     container.setType(pClass);
+    container.setContainerType(EContainerType.CLASS);
     container.setAnnotations(Arrays.stream(pClass.getDeclaredAnnotations())
                                  .map(this::_convert)
                                  .toArray(SAnnotation[]::new));
@@ -44,6 +46,7 @@ class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
     SAnnotationContainer container = new SAnnotationContainer();
     container.setName(pField.getName());
     container.setType(null);
+    container.setContainerType(EContainerType.FIELD);
     container.setAnnotations(Arrays.stream(pField.getDeclaredAnnotations())
                                  .map(this::_convert)
                                  .toArray(SAnnotation[]::new));
@@ -55,6 +58,7 @@ class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
     SAnnotationContainer container = new SAnnotationContainer();
     container.setName(pMethod.getName());
     container.setType(null);
+    container.setContainerType(EContainerType.METHOD);
     container.setAnnotations(Arrays.stream(pMethod.getDeclaredAnnotations())
                                  .map(this::_convert)
                                  .toArray(SAnnotation[]::new));

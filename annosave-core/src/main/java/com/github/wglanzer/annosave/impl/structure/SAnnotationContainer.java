@@ -13,6 +13,7 @@ public class SAnnotationContainer implements IAnnotationContainer
 
   private Class<?> type;
   private String name;
+  private EContainerType containerType;
   private SAnnotation[] annotations;
   private SAnnotationContainer[] children;
 
@@ -28,6 +29,13 @@ public class SAnnotationContainer implements IAnnotationContainer
   public String getName()
   {
     return name;
+  }
+
+  @NotNull
+  @Override
+  public EContainerType getContainerType()
+  {
+    return containerType;
   }
 
   @Override
@@ -52,6 +60,11 @@ public class SAnnotationContainer implements IAnnotationContainer
     type = pType;
   }
 
+  public void setContainerType(EContainerType pContainerType)
+  {
+    containerType = pContainerType;
+  }
+
   public void setAnnotations(SAnnotation[] pAnnotations)
   {
     annotations = pAnnotations;
@@ -70,6 +83,7 @@ public class SAnnotationContainer implements IAnnotationContainer
     SAnnotationContainer that = (SAnnotationContainer) pO;
     return Objects.equals(type, that.type) &&
         Objects.equals(name, that.name) &&
+        Objects.equals(containerType, that.containerType) &&
         Arrays.equals(annotations, that.annotations) &&
         Arrays.equals(children, that.children);
   }
@@ -77,6 +91,6 @@ public class SAnnotationContainer implements IAnnotationContainer
   @Override
   public int hashCode()
   {
-    return Objects.hash(type, name, annotations, children);
+    return Objects.hash(type, name, containerType, annotations, children);
   }
 }

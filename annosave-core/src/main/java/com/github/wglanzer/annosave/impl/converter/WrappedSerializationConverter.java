@@ -30,6 +30,7 @@ class WrappedSerializationConverter<Type> implements ISerializationConverter<Typ
     SAnnotationContainer container = new SAnnotationContainer();
     container.setName(pContainer.getName());
     container.setType(pContainer.getType());
+    container.setContainerType(pContainer.getContainerType());
     container.setAnnotations(Arrays.stream(pContainer.getAnnotations())
                                  .map(this::_create)
                                  .toArray(SAnnotation[]::new));

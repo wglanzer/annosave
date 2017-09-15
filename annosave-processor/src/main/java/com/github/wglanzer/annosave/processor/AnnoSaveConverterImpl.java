@@ -37,6 +37,17 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
         return pElement.toString();
       }
 
+      @NotNull
+      @Override
+      public EContainerType getContainerType()
+      {
+        if(ElementUtil.isMethod(pElement))
+          return EContainerType.METHOD;
+        else if(ElementUtil.isField(pElement))
+          return EContainerType.FIELD;
+        return EContainerType.CLASS;
+      }
+
       @Override
       public IAnnotation[] getAnnotations()
       {

@@ -24,6 +24,13 @@ public interface IAnnotationContainer
   @NotNull
   String getName();
 
+
+  /**
+   * @return Type of the container
+   */
+  @NotNull
+  EContainerType getContainerType();
+
   /**
    * @return all annotations on the container
    */
