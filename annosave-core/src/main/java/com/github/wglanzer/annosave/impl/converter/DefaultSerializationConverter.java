@@ -22,6 +22,7 @@ class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
   {
     SAnnotationContainer container = new SAnnotationContainer();
     container.setName(pClass.getSimpleName());
+    container.setType(pClass);
     container.setAnnotations(Arrays.stream(pClass.getDeclaredAnnotations())
                                  .map(this::_convert)
                                  .toArray(SAnnotation[]::new));
@@ -42,6 +43,7 @@ class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
   {
     SAnnotationContainer container = new SAnnotationContainer();
     container.setName(pField.getName());
+    container.setType(null);
     container.setAnnotations(Arrays.stream(pField.getDeclaredAnnotations())
                                  .map(this::_convert)
                                  .toArray(SAnnotation[]::new));
@@ -52,6 +54,7 @@ class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
   {
     SAnnotationContainer container = new SAnnotationContainer();
     container.setName(pMethod.getName());
+    container.setType(null);
     container.setAnnotations(Arrays.stream(pMethod.getDeclaredAnnotations())
                                  .map(this::_convert)
                                  .toArray(SAnnotation[]::new));
@@ -62,6 +65,7 @@ class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
   {
     SAnnotation annotation = new SAnnotation();
     annotation.setType(pAnnotation.annotationType());
+    annotation.setName(pAnnotation.annotationType().getName());
 
     List<SAnnotationParameter> parameters = new ArrayList<>();
     for (Method method : pAnnotation.annotationType().getDeclaredMethods())

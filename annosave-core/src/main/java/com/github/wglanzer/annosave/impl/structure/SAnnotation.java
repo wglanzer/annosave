@@ -1,6 +1,7 @@
 package com.github.wglanzer.annosave.impl.structure;
 
 import com.github.wglanzer.annosave.api.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -11,12 +12,20 @@ public class SAnnotation implements IAnnotation
 {
 
   private Class<?> type;
+  private String name;
   private SAnnotationParameter[] parameters;
 
   @Override
   public Class<?> getType()
   {
     return type;
+  }
+
+  @NotNull
+  @Override
+  public String getName()
+  {
+    return name;
   }
 
   @Override
@@ -28,6 +37,11 @@ public class SAnnotation implements IAnnotation
   public void setType(Class<?> pType)
   {
     type = pType;
+  }
+
+  public void setName(String pName)
+  {
+    name = pName;
   }
 
   public void setParameters(SAnnotationParameter[] pParameters)
@@ -42,6 +56,7 @@ public class SAnnotation implements IAnnotation
     if (pO == null || getClass() != pO.getClass()) return false;
     SAnnotation that = (SAnnotation) pO;
     return Objects.equals(type, that.type) &&
+        Objects.equals(name, that.name) &&
         Arrays.equals(parameters, that.parameters);
   }
 

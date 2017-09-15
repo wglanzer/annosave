@@ -1,6 +1,7 @@
 package com.github.wglanzer.annosave.impl.structure;
 
 import com.github.wglanzer.annosave.api.*;
+import org.jetbrains.annotations.*;
 
 import java.util.*;
 
@@ -10,10 +11,19 @@ import java.util.*;
 public class SAnnotationContainer implements IAnnotationContainer
 {
 
+  private Class<?> type;
   private String name;
   private SAnnotation[] annotations;
   private SAnnotationContainer[] children;
 
+  @Nullable
+  @Override
+  public Class<?> getType()
+  {
+    return type;
+  }
+
+  @NotNull
   @Override
   public String getName()
   {
@@ -37,6 +47,11 @@ public class SAnnotationContainer implements IAnnotationContainer
     name = pName;
   }
 
+  public void setType(Class<?> pType)
+  {
+    type = pType;
+  }
+
   public void setAnnotations(SAnnotation[] pAnnotations)
   {
     annotations = pAnnotations;
@@ -53,7 +68,8 @@ public class SAnnotationContainer implements IAnnotationContainer
     if (this == pO) return true;
     if (pO == null || getClass() != pO.getClass()) return false;
     SAnnotationContainer that = (SAnnotationContainer) pO;
-    return Objects.equals(name, that.name) &&
+    return Objects.equals(type, that.type) &&
+        Objects.equals(name, that.name) &&
         Arrays.equals(annotations, that.annotations) &&
         Arrays.equals(children, that.children);
   }
@@ -61,6 +77,6 @@ public class SAnnotationContainer implements IAnnotationContainer
   @Override
   public int hashCode()
   {
-    return Objects.hash(name, annotations, children);
+    return Objects.hash(type, name, annotations, children);
   }
 }
