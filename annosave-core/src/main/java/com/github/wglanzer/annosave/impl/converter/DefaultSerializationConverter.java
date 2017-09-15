@@ -1,4 +1,4 @@
-package com.github.wglanzer.annosave.impl;
+package com.github.wglanzer.annosave.impl.converter;
 
 import com.github.wglanzer.annosave.impl.structure.*;
 
@@ -9,7 +9,7 @@ import java.util.*;
 /**
  * @author W.Glanzer, 13.09.2017
  */
-public class AnnoSaveConverter
+class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
 {
 
   /**
@@ -18,12 +18,12 @@ public class AnnoSaveConverter
    * @param pClass class which should be converted
    * @return container
    */
-  public static SAnnotationContainer convert(Class<?> pClass)
+  public SAnnotationContainer convert(Class<?> pClass)
   {
     SAnnotationContainer container = new SAnnotationContainer();
     container.setName(pClass.getSimpleName());
     container.setAnnotations(Arrays.stream(pClass.getDeclaredAnnotations())
-                                 .map(AnnoSaveConverter::_convert)
+                                 .map(this::_convert)
                                  .toArray(SAnnotation[]::new));
 
     List<SAnnotationContainer> children = new ArrayList<>();
@@ -38,27 +38,27 @@ public class AnnoSaveConverter
     return container;
   }
 
-  private static SAnnotationContainer _convert(Field pField)
+  private SAnnotationContainer _convert(Field pField)
   {
     SAnnotationContainer container = new SAnnotationContainer();
     container.setName(pField.getName());
     container.setAnnotations(Arrays.stream(pField.getDeclaredAnnotations())
-                                 .map(AnnoSaveConverter::_convert)
+                                 .map(this::_convert)
                                  .toArray(SAnnotation[]::new));
     return container;
   }
 
-  private static SAnnotationContainer _convert(Method pMethod)
+  private SAnnotationContainer _convert(Method pMethod)
   {
     SAnnotationContainer container = new SAnnotationContainer();
     container.setName(pMethod.getName());
     container.setAnnotations(Arrays.stream(pMethod.getDeclaredAnnotations())
-                                 .map(AnnoSaveConverter::_convert)
+                                 .map(this::_convert)
                                  .toArray(SAnnotation[]::new));
     return container;
   }
 
-  private static SAnnotation _convert(Annotation pAnnotation)
+  private SAnnotation _convert(Annotation pAnnotation)
   {
     SAnnotation annotation = new SAnnotation();
     annotation.setType(pAnnotation.annotationType());
