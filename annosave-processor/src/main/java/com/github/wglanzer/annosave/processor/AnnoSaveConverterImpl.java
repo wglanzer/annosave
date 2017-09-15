@@ -6,7 +6,6 @@ import com.google.common.primitives.Primitives;
 import org.jetbrains.annotations.*;
 
 import javax.lang.model.element.*;
-import javax.lang.model.util.ElementFilter;
 import java.util.*;
 
 /**
@@ -17,7 +16,7 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
   @Override
   public IAnnotationContainer createContainer(Element pElement)
   {
-    if(_getChildren(pElement) == null)
+    if(_getChildren(pElement).length == 0 && _getAnnotations(pElement).length == 0)
       return null;
     
     return new IAnnotationContainer()
@@ -33,20 +32,15 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
       @Override
       public String getName()
       {
-        return pElement.getSimpleName().toString();
+        if(ElementUtil.isMethod(pElement))
+          return pElement.getSimpleName().toString();
+        return pElement.toString();
       }
 
       @Override
       public IAnnotation[] getAnnotations()
       {
-        ArrayList<IAnnotation> annos = new ArrayList<>();
-        for (AnnotationMirror annotationMirror : pElement.getAnnotationMirrors())
-        {
-          IAnnotation anno = _toAnno(annotationMirror);
-          if(anno != null)
-            annos.add(anno);
-        }
-        return annos.toArray(new IAnnotation[annos.size()]);
+        return _getAnnotations(pElement);
       }
 
       @Override
@@ -57,17 +51,25 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
     };
   }
 
-  @Nullable
+  @NotNull
+  private IAnnotation[] _getAnnotations(Element pElement)
+  {
+    ArrayList<IAnnotation> annos = new ArrayList<>();
+    for (AnnotationMirror annotationMirror : pElement.getAnnotationMirrors())
+    {
+      IAnnotation anno = _toAnno(annotationMirror);
+      if(anno != null)
+        annos.add(anno);
+    }
+    return annos.toArray(new IAnnotation[annos.size()]);
+  }
+
+  @NotNull
   private IAnnotationContainer[] _getChildren(Element pElement)
   {
     return pElement.getEnclosedElements().stream()
-        .filter(Predicates.not(Predicates.in(ElementFilter.constructorsIn(pElement.getEnclosedElements()))))
-        .map(element -> {
-          IAnnotationContainer container = createContainer(element);
-          if (container.getChildren() != null)
-            return container;
-          return null;
-        })
+        .filter(Predicates.not(ElementUtil::isConstructor))
+        .map(this::createContainer)
         .filter(Objects::nonNull)
         .toArray(IAnnotationContainer[]::new);
   }

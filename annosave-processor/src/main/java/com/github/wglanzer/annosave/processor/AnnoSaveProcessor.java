@@ -21,9 +21,8 @@ public class AnnoSaveProcessor extends AbstractProcessor
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv)
   {
-    if (roundEnv.processingOver() || annotations.isEmpty())
+    if (roundEnv.processingOver())
       return false;
-
 
     List<Element> elements = new ArrayList<>();
     for (Element element : roundEnv.getRootElements())
@@ -35,7 +34,7 @@ public class AnnoSaveProcessor extends AbstractProcessor
 
     try
     {
-      URI uri = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", "annosave.zip").toUri();
+      URI uri = processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, "", "annosave.zip").toUri();
       AnnoSaveGZip.write(elements.toArray(new Element[elements.size()]), new AnnoSaveConverterImpl(), new File(uri));
     }
     catch (Exception pE)

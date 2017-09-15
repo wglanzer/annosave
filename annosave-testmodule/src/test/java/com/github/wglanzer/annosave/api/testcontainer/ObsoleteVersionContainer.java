@@ -17,6 +17,6 @@ public @interface ObsoleteVersionContainer
 
   String category() default "";
 
-  boolean serialize() default false;
+  boolean serialize() default true;
 
 }
