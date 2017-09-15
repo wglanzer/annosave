@@ -1,10 +1,12 @@
 package com.github.wglanzer.annosave.api;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.*;
 import java.util.*;
 import java.util.zip.*;
 
@@ -59,23 +61,28 @@ public class AnnoSaveGZip
     if(pObjects.length == 0)
       return new IAnnotationContainer[0];
 
-    try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(pZipFile)))
+    try
     {
-      IAnnotationContainer[] containers = new IAnnotationContainer[pObjects.length];
-      for (int i = 0; i < pObjects.length; i++)
+      HashMap<String, String> env = new HashMap<>();
+      env.put("create", String.valueOf(!pZipFile.exists()));
+      env.put("encoding", "UTF-8");
+      try (FileSystem zipFs = FileSystems.newFileSystem(URI.create("jar:" + pZipFile.toURI()), env))
       {
-        try(ByteArrayOutputStream baos = new ByteArrayOutputStream())
+        IAnnotationContainer[] containers = new IAnnotationContainer[pObjects.length];
+        for (int i = 0; i < pObjects.length; i++)
         {
-          IAnnotationContainer container = AnnoSave.write(pObjects[i], pConverter, baos);
-          zipOutputStream.putNextEntry(new ZipEntry(container.getName() + ".json"));
-          IOUtils.copy(new ByteArrayInputStream(baos.toByteArray()), zipOutputStream);
-          zipOutputStream.closeEntry();
-          containers[i] = container;
+          try (ByteArrayOutputStream baos = new ByteArrayOutputStream())
+          {
+            IAnnotationContainer container = AnnoSave.write(pObjects[i], pConverter, baos);
+            Path file = zipFs.getPath("/" + container.getName() + ".json");
+            Files.copy(new ByteArrayInputStream(baos.toByteArray()), file, StandardCopyOption.REPLACE_EXISTING);
+            containers[i] = container;
+          }
         }
+        return containers;
       }
-      return containers;
     }
-    catch (Exception e)
+    catch(Exception e)
     {
       throw new RuntimeException(e);
     }
