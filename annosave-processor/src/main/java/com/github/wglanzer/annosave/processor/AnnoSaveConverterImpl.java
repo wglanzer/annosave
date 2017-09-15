@@ -17,6 +17,9 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
   @Override
   public IAnnotationContainer createContainer(Element pElement)
   {
+    if(_getChildren(pElement) == null)
+      return null;
+    
     return new IAnnotationContainer()
     {
       @Nullable
@@ -72,8 +75,7 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
   @Nullable
   private IAnnotation _toAnno(AnnotationMirror pMirror)
   {
-    AnnoPersist persist = pMirror.getAnnotationType().asElement().getAnnotation(AnnoPersist.class);
-    if(persist == null)
+    if(!new PersistenceFilter().test(pMirror))
       return null;
 
     return new IAnnotation()

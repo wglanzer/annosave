@@ -28,15 +28,9 @@ public class AnnoSaveProcessor extends AbstractProcessor
     List<Element> elements = new ArrayList<>();
     for (Element element : roundEnv.getRootElements())
     {
-      for (AnnotationMirror mirror : element.getAnnotationMirrors())
-      {
-        AnnoPersist persist = mirror.getAnnotationType().asElement().getAnnotation(AnnoPersist.class);
-        if(persist != null)
-        {
-          elements.add(element);
-          break;
-        }
-      }
+      boolean hasAny = element.getAnnotationMirrors().stream().anyMatch(new PersistenceFilter());
+      if(hasAny)
+        elements.add(element);
     }
 
     try

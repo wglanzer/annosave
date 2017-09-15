@@ -1,7 +1,5 @@
 package com.github.wglanzer.annosave.api.testcontainer;
 
-import com.github.wglanzer.annosave.processor.AnnoPersist;
-
 import java.lang.annotation.*;
 
 /**
@@ -9,7 +7,6 @@ import java.lang.annotation.*;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
-@AnnoPersist
 public @interface ObsoleteVersions
 {
 
