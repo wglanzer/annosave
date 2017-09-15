@@ -55,6 +55,10 @@ public class AnnoSaveGZip
    */
   public static <T> IAnnotationContainer[] write(T[] pObjects, IAnnoSaveConverter<T> pConverter, @NotNull File pZipFile)
   {
+    // Nothing to write -> no zip-file, empty array
+    if(pObjects.length == 0)
+      return new IAnnotationContainer[0];
+
     try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(pZipFile)))
     {
       IAnnotationContainer[] containers = new IAnnotationContainer[pObjects.length];
