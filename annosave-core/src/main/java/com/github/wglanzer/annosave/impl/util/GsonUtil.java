@@ -59,6 +59,7 @@ public class GsonUtil
       return parameter;
     });
 
+    b.setPrettyPrinting();
     return b.create();
   }
 
