@@ -35,6 +35,11 @@
     <developerConnection>git@github.com:wglanzer/annosave.git</developerConnection>
   </scm>
 
+  <issueManagement>
+    <url>https://github.com/wglanzer/annosave/issues</url>
+    <system>github</system>
+  </issueManagement>
+
   <distributionManagement>
     <snapshotRepository>
       <id>ossrh</id>
