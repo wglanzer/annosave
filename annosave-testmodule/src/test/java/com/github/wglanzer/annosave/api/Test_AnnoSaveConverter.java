@@ -18,7 +18,7 @@ public class Test_AnnoSaveConverter
 {
 
   @Test
-  public void test_writeReadSimple() throws Exception
+  public void test_writeReadSimple()
   {
     StringWriter stringWriter = new StringWriter();
     IAnnotationContainer createdContainer = AnnoSave.write(TestVersionContainerImpl.class, new WriterOutputStream(stringWriter, Charsets.UTF_8));
@@ -27,7 +27,7 @@ public class Test_AnnoSaveConverter
   }
 
   @Test
-  public void test_writeReadExtended() throws Exception
+  public void test_writeReadExtended()
   {
     StringWriter stringWriter = new StringWriter();
     AnnoSave.write(TestVersionContainerImpl.class, new WriterOutputStream(stringWriter, Charsets.UTF_8));
@@ -121,7 +121,7 @@ public class Test_AnnoSaveConverter
   }
 
   @Test
-  public void test_writeReadZip() throws Exception
+  public void test_writeReadZip()
   {
     File zipFile = new File("target/classes/test.zip");
     zipFile.deleteOnExit();
