@@ -52,9 +52,14 @@ public interface IAnnotationContainer
   @Nullable
   default IAnnotation findAnnotation(@NotNull Class<?> pType)
   {
-    return Arrays.stream(getAnnotations())
-        .filter(pAnnotation -> Objects.equals(pAnnotation.getType().getInstance(), pType))
-        .findFirst().orElse(null);
+    try
+    {
+      return getAnnotation(pType);
+    }
+    catch(Exception e)
+    {
+      return null;
+    }
   }
 
   /**
@@ -66,9 +71,66 @@ public interface IAnnotationContainer
   @Nullable
   default IAnnotation findAnnotation(@NotNull IType pType)
   {
+    try
+    {
+      return getAnnotation(pType);
+    }
+    catch(Exception e)
+    {
+      return null;
+    }
+  }
+
+  /**
+   * Returns an annotation with the given type
+   *
+   * @param pType Type of the annotation
+   * @return the Annotation
+   * @throws NullPointerException if nothing was found
+   */
+  @NotNull
+  default IAnnotation getAnnotation(@NotNull Class<?> pType)
+  {
+    return Arrays.stream(getAnnotations())
+        .filter(pAnnotation -> Objects.equals(pAnnotation.getType().getInstance(), pType))
+        .findFirst().orElseThrow(NullPointerException::new);
+  }
+
+  /**
+   * Returns an annotation with the given type
+   *
+   * @param pType Type of the annotation
+   * @return the Annotation
+   * @throws NullPointerException if nothing was found
+   */
+  @NotNull
+  default IAnnotation getAnnotation(@NotNull IType pType)
+  {
     return Arrays.stream(getAnnotations())
         .filter(pAnnotation -> Objects.equals(pAnnotation.getType(), pType))
-        .findFirst().orElse(null);
+        .findFirst().orElseThrow(NullPointerException::new);
+  }
+
+  /**
+   * Returns <tt>true</tt> if an annotation with pType was found on this container
+   *
+   * @param pType Type of the annotation
+   * @return <tt>true</tt> if it is available
+   */
+  default boolean hasAnnotation(@NotNull Class<?> pType)
+  {
+    return findAnnotation(pType) != null;
+  }
+
+  /**
+   * Returns <tt>true</tt> if an annotation with pType was found on this container
+   *
+   * @param pType Type of the annotation
+   * @return <tt>true</tt> if it is available
+   */
+  default boolean hasAnnotation(@NotNull IType pType)
+  {
+    return findAnnotation(pType) != null;
   }
 
 }

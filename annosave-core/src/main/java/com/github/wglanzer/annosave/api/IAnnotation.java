@@ -51,12 +51,33 @@ public interface IAnnotation
    * @return the value, or <tt>null</tt> if no parameter is found or the value is null
    */
   @Nullable
-  default Object getParameterValue(String pParameterName)
+  default Object getParameterValue(@NotNull String pParameterName)
   {
     IAnnotationParameter param = findParameter(pParameterName);
     if(param == null)
       return null;
     return param.getValue();
+  }
+
+  /**
+   * Returns the value of the parameter with the given name
+   *
+   * @param pParameterName Name of the parameter
+   * @param pType          Type of the parameter in which the result should be cast to
+   * @return the value, or <tt>null</tt> if no parameter is found or the value is null
+   */
+  @Nullable
+  default <T> T getParameterValue(@NotNull String pParameterName, @NotNull Class<T> pType)
+  {
+    Object value = getParameterValue(pParameterName);
+    if(value == null)
+      return null;
+
+    if(pType.equals(String.class))
+      //noinspection unchecked
+      return (T) value.toString();
+
+    return pType.cast(value);
   }
 
 }
