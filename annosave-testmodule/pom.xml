@@ -7,11 +7,11 @@
   <parent>
     <groupId>com.github.wglanzer.annosave</groupId>
     <artifactId>annosave-parent</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
   </parent>
 
   <artifactId>annosave-testmodule</artifactId>
-  <version>1.1.0</version>
+  <version>1.1.1</version>
   <packaging>jar</packaging>
 
   <name>AnnoSave: Testmodule</name>
