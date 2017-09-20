@@ -92,6 +92,7 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
       return TypeFactory.create(mirror.getAnnotationType().toString());
     }
 
+    @NotNull
     @Override
     public IAnnotationParameter[] getParameters()
     {

@@ -29,6 +29,7 @@ public class SAnnotation implements IAnnotation
     return type;
   }
 
+  @NotNull
   @Override
   public IAnnotationParameter[] getParameters()
   {

@@ -1,5 +1,6 @@
 package com.github.wglanzer.annosave.api;
 
+import com.github.wglanzer.annosave.impl.util.TypeFactory;
 import org.jetbrains.annotations.*;
 
 /**
@@ -31,5 +32,29 @@ public interface IType
    */
   @Nullable
   Class<?> getInstance();
+
+  /**
+   * Creates a new IType-instance representing a class with the given name
+   *
+   * @param pClassName classname, it does not have to be on classpath
+   * @return the type
+   */
+  @NotNull
+  default IType of(@NotNull String pClassName)
+  {
+    return TypeFactory.create(pClassName);
+  }
+
+  /**
+   * Creates a new IType-instance representing the given class
+   *
+   * @param pClass Class to represent
+   * @return the type
+   */
+  @NotNull
+  default IType of(@NotNull Class<?> pClass)
+  {
+    return of(pClass.getName());
+  }
 
 }
