@@ -56,13 +56,16 @@ class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
 
   private SAnnotationContainer _convert(Method pMethod)
   {
-    SAnnotationContainer container = new SAnnotationContainer();
+    SMethodContainer container = new SMethodContainer();
     container.setName(pMethod.getName());
     container.setType(TypeFactory.create(pMethod.getReturnType().getName()));
     container.setContainerType(EContainerType.METHOD);
     container.setAnnotations(Arrays.stream(pMethod.getDeclaredAnnotations())
                                  .map(this::_convert)
                                  .toArray(SAnnotation[]::new));
+    container.setMethodParameters(Arrays.stream(pMethod.getParameters())
+                                      .map(pParameter -> TypeFactory.create(pParameter.getType().getName()))
+                                      .toArray(SType[]::new));
     return container;
   }
 

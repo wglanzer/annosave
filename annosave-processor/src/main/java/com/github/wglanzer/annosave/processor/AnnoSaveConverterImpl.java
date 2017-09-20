@@ -1,6 +1,7 @@
 package com.github.wglanzer.annosave.processor;
 
 import com.github.wglanzer.annosave.api.*;
+import com.github.wglanzer.annosave.api.containers.IMethodContainer;
 import com.github.wglanzer.annosave.impl.util.TypeFactory;
 import com.google.auto.common.AnnotationMirrors;
 import com.google.common.base.Predicates;
@@ -22,52 +23,9 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
     if (_getChildren(pElement).length == 0 && _getAnnotations(pElement).length == 0)
       return null;
 
-    return new IAnnotationContainer()
-    {
-      @NotNull
-      @Override
-      public String getName()
-      {
-        return pElement.getSimpleName().toString();
-      }
-
-      @NotNull
-      @Override
-      public IType getType()
-      {
-        String className;
-        if(ElementUtil.isField(pElement))
-          className = ElementUtil.getClassName(pElement.asType());
-        else if(ElementUtil.isMethod(pElement))
-          className = ElementUtil.getClassName(((ExecutableElement) pElement).getReturnType());
-        else
-          className = pElement.toString();
-        return TypeFactory.create(className);
-      }
-
-      @NotNull
-      @Override
-      public EContainerType getContainerType()
-      {
-        if (ElementUtil.isMethod(pElement))
-          return EContainerType.METHOD;
-        else if (ElementUtil.isField(pElement))
-          return EContainerType.FIELD;
-        return EContainerType.CLASS;
-      }
-
-      @Override
-      public IAnnotation[] getAnnotations()
-      {
-        return _getAnnotations(pElement);
-      }
-
-      @Override
-      public IAnnotationContainer[] getChildren()
-      {
-        return _getChildren(pElement);
-      }
-    };
+    if (ElementUtil.isMethod(pElement))
+      return new _MethodContainer((ExecutableElement) pElement);
+    return new _AnnotationContainer(pElement);
   }
 
   @NotNull
@@ -99,87 +57,195 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
     if (!new PersistenceFilter().test(pMirror))
       return null;
 
-    return new IAnnotation()
-    {
-      @NotNull
-      @Override
-      public String getName()
-      {
-        return pMirror.getAnnotationType().toString();
-      }
-
-      @NotNull
-      @Override
-      public IType getType()
-      {
-        return TypeFactory.create(pMirror.getAnnotationType().toString());
-      }
-
-      @Override
-      public IAnnotationParameter[] getParameters()
-      {
-        ArrayList<IAnnotationParameter> params = new ArrayList<>();
-        AnnotationMirrors.getAnnotationValuesWithDefaults(pMirror).forEach((pName, pValue) -> params.add(_toParameter(pName, pValue)));
-        return params.toArray(new IAnnotationParameter[params.size()]);
-      }
-    };
+    return new _Annotation(pMirror);
   }
 
   @NotNull
   private IAnnotationParameter _toParameter(ExecutableElement pElement, AnnotationValue pValue)
   {
-    return new IAnnotationParameter()
-    {
-      @Override
-      public String getName()
-      {
-        return pElement.getSimpleName().toString();
-      }
-
-      @NotNull
-      @Override
-      public IType getType()
-      {
-        return TypeFactory.create(ElementUtil.getClassName(pElement.getReturnType()));
-      }
-
-      @Override
-      public Object getValue()
-      {
-        return _extractValueFromAnnotationValue(pValue);
-      }
-
-      private Object _extractValueFromAnnotationValue(AnnotationValue pValue)
-      {
-        Object value = pValue.getValue();
-        if (value instanceof List)
-        {
-          if (((List) value).get(0) instanceof AnnotationMirror)
-          {
-            return ((List<AnnotationMirror>) value).stream()
-                .map(pMirror -> _toAnno(pMirror))
-                .toArray(IAnnotation[]::new);
-          }
-          else if (((List) value).get(0) instanceof AnnotationValue)
-          {
-            return ((List<AnnotationValue>) value).stream()
-                .map(this::_extractValueFromAnnotationValue)
-                .toArray(Object[]::new);
-          }
-        }
-
-        // Maybe it is a Class-Type? (int.class, String.class, ...)
-        if(value instanceof TypeMirror)
-          return ElementUtil.getClassName((TypeMirror) value);
-
-        // Already a correct value?
-        if (value instanceof String ||
-            value.getClass().isPrimitive() ||
-            Primitives.isWrapperType(value.getClass()))
-          return value;
-
-        return value.toString();
-      }
-    };
+    return new _AnnotationParameter(pElement, pValue);
   }
+
+  /**
+   * IAnnotation-Impl
+   */
+  private class _Annotation implements IAnnotation
+  {
+    private final AnnotationMirror mirror;
+
+    public _Annotation(AnnotationMirror pMirror)
+    {
+      mirror = pMirror;
+    }
+
+    @NotNull
+    @Override
+    public String getName()
+    {
+      return mirror.getAnnotationType().toString();
+    }
+
+    @NotNull
+    @Override
+    public IType getType()
+    {
+      return TypeFactory.create(mirror.getAnnotationType().toString());
+    }
+
+    @Override
+    public IAnnotationParameter[] getParameters()
+    {
+      ArrayList<IAnnotationParameter> params = new ArrayList<>();
+      AnnotationMirrors.getAnnotationValuesWithDefaults(mirror).forEach((pName, pValue) -> params.add(_toParameter(pName, pValue)));
+      return params.toArray(new IAnnotationParameter[params.size()]);
+    }
+  }
+
+  /**
+   * IAnnotationParameter-Impl
+   */
+  private class _AnnotationParameter implements IAnnotationParameter
+  {
+    private final ExecutableElement element;
+    private final AnnotationValue value;
+
+    public _AnnotationParameter(ExecutableElement pElement, AnnotationValue pValue)
+    {
+      element = pElement;
+      value = pValue;
+    }
+
+    @Override
+    public String getName()
+    {
+      return element.getSimpleName().toString();
+    }
+
+    @NotNull
+    @Override
+    public IType getType()
+    {
+      return TypeFactory.create(ElementUtil.getClassName(element.getReturnType()));
+    }
+
+    @Override
+    public Object getValue()
+    {
+      return _extractValueFromAnnotationValue(value);
+    }
+
+    private Object _extractValueFromAnnotationValue(AnnotationValue pValue)
+    {
+      Object value = pValue.getValue();
+      if (value instanceof List)
+      {
+        if (((List) value).get(0) instanceof AnnotationMirror)
+        {
+          return ((List<AnnotationMirror>) value).stream()
+              .map(pMirror -> _toAnno(pMirror))
+              .toArray(IAnnotation[]::new);
+        }
+        else if (((List) value).get(0) instanceof AnnotationValue)
+        {
+          return ((List<AnnotationValue>) value).stream()
+              .map(this::_extractValueFromAnnotationValue)
+              .toArray(Object[]::new);
+        }
+      }
+
+      // Maybe it is a Class-Type? (int.class, String.class, ...)
+      if (value instanceof TypeMirror)
+        return ElementUtil.getClassName((TypeMirror) value);
+
+      // Already a correct value?
+      if (value instanceof String ||
+          value.getClass().isPrimitive() ||
+          Primitives.isWrapperType(value.getClass()))
+        return value;
+
+      return value.toString();
+    }
+  }
+
+  /**
+   * IAnnotationContainer-Impl
+   */
+  private class _AnnotationContainer implements IAnnotationContainer
+  {
+    private final Element element;
+
+    public _AnnotationContainer(Element pElement)
+    {
+      element = pElement;
+    }
+
+    @NotNull
+    @Override
+    public String getName()
+    {
+      return element.getSimpleName().toString();
+    }
+
+    @NotNull
+    @Override
+    public IType getType()
+    {
+      String className;
+      if (ElementUtil.isField(element))
+        className = ElementUtil.getClassName(element.asType());
+      else if (ElementUtil.isMethod(element))
+        className = ElementUtil.getClassName(((ExecutableElement) element).getReturnType());
+      else
+        className = element.toString();
+      return TypeFactory.create(className);
+    }
+
+    @NotNull
+    @Override
+    public EContainerType getContainerType()
+    {
+      if (ElementUtil.isMethod(element))
+        return EContainerType.METHOD;
+      else if (ElementUtil.isField(element))
+        return EContainerType.FIELD;
+      return EContainerType.CLASS;
+    }
+
+    @Override
+    public IAnnotation[] getAnnotations()
+    {
+      return _getAnnotations(element);
+    }
+
+    @Override
+    public IAnnotationContainer[] getChildren()
+    {
+      return _getChildren(element);
+    }
+  }
+
+  /**
+   * IMethodContainer-Impl
+   */
+  private class _MethodContainer extends _AnnotationContainer implements IMethodContainer
+  {
+    private final ExecutableElement element;
+
+    public _MethodContainer(ExecutableElement pElement)
+    {
+      super(pElement);
+      element = pElement;
+    }
+
+    @NotNull
+    @Override
+    public IType[] getMethodParameters()
+    {
+      return element.getParameters().stream()
+          .map(Element::asType)
+          .map(pEle -> TypeFactory.create(ElementUtil.getClassName(pEle)))
+          .toArray(IType[]::new);
+    }
+  }
+
 }

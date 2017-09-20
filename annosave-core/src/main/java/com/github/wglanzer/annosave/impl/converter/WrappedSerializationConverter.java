@@ -1,6 +1,7 @@
 package com.github.wglanzer.annosave.impl.converter;
 
 import com.github.wglanzer.annosave.api.*;
+import com.github.wglanzer.annosave.api.containers.IMethodContainer;
 import com.github.wglanzer.annosave.impl.structure.*;
 import com.github.wglanzer.annosave.impl.util.TypeFactory;
 
@@ -28,7 +29,7 @@ class WrappedSerializationConverter<Type> implements ISerializationConverter<Typ
 
   private SAnnotationContainer _create(IAnnotationContainer pContainer)
   {
-    SAnnotationContainer container = new SAnnotationContainer();
+    SAnnotationContainer container = pContainer instanceof IMethodContainer ? new SMethodContainer() : new SAnnotationContainer();
     container.setName(pContainer.getName());
     container.setType(_create(pContainer.getType()));
     container.setContainerType(pContainer.getContainerType());
@@ -38,6 +39,12 @@ class WrappedSerializationConverter<Type> implements ISerializationConverter<Typ
     container.setChildren(Arrays.stream(pContainer.getChildren())
                               .map(this::_create)
                               .toArray(SAnnotationContainer[]::new));
+
+    if(pContainer instanceof IMethodContainer)
+      ((SMethodContainer) container).setMethodParameters(Arrays.stream(((IMethodContainer) pContainer).getMethodParameters())
+                                        .map(this::_create)
+                                        .toArray(SType[]::new));
+
     return container;
   }
 
@@ -59,7 +66,7 @@ class WrappedSerializationConverter<Type> implements ISerializationConverter<Typ
     parameter.setType(_create(pParameter.getType()));
 
     Object value = pParameter.getValue();
-    if(value instanceof IAnnotation[])
+    if (value instanceof IAnnotation[])
     {
       value = Arrays.stream((IAnnotation[]) value)
           .map(this::_create)
@@ -73,7 +80,7 @@ class WrappedSerializationConverter<Type> implements ISerializationConverter<Typ
   private SType _create(IType pSource)
   {
     SType source = TypeFactory.create(pSource.getClassName());
-    if(source.isPrimitive() != pSource.isPrimitive() ||
+    if (source.isPrimitive() != pSource.isPrimitive() ||
         source.isArray() != pSource.isArray())
       throw new IllegalArgumentException("IType given in converter is invalid");
     return source;

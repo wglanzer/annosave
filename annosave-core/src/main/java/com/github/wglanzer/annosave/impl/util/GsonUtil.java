@@ -4,6 +4,8 @@ import com.github.wglanzer.annosave.impl.structure.*;
 import com.google.common.primitives.Primitives;
 import com.google.gson.*;
 
+import java.util.*;
+
 /**
  * @author W.Glanzer, 13.09.2017
  */
@@ -57,6 +59,34 @@ public class GsonUtil
       Class valuetype = context.deserialize(obj.get("valuetype"), Class.class);
       parameter.setOriginalValue(context.deserialize(obj.get("value"), valuetype));
       return parameter;
+    });
+
+    // SAnnotationContainer[] to support multiple container-classes
+    b.registerTypeAdapter(SAnnotationContainer[].class, (JsonSerializer<SAnnotationContainer[]>) (src, typeOfSrc, context) -> {
+      JsonArray array = new JsonArray();
+      for (SAnnotationContainer container : src)
+      {
+        JsonObject ele;
+        if(container instanceof SMethodContainer)
+          ele = context.serialize(container, SMethodContainer.class).getAsJsonObject();
+        else
+          ele = context.serialize(container, SAnnotationContainer.class).getAsJsonObject();
+        ele.add("__type", context.serialize(container.getClass().getSimpleName(), String.class));
+        array.add(ele);
+      }
+      return array;
+    }).registerTypeAdapter(SAnnotationContainer[].class, (JsonDeserializer<SAnnotationContainer[]>) (src, typeOfSrc, context) -> {
+      List<SAnnotationContainer> containers = new ArrayList<>();
+      for (JsonElement innerEle : src.getAsJsonArray())
+      {
+        JsonObject obj = innerEle.getAsJsonObject();
+        String type = context.deserialize(obj.remove("__type"), String.class);
+        if(type.equals(SMethodContainer.class.getSimpleName()))
+          containers.add(context.deserialize(obj, SMethodContainer.class));
+        else
+          containers.add(context.deserialize(obj, SAnnotationContainer.class));
+      }
+      return containers.toArray(new SAnnotationContainer[containers.size()]);
     });
 
     b.setPrettyPrinting();

@@ -1,5 +1,6 @@
 package com.github.wglanzer.annosave.api;
 
+import com.github.wglanzer.annosave.api.containers.IMethodContainer;
 import com.github.wglanzer.annosave.api.testcontainer.*;
 import com.google.common.base.Charsets;
 import org.apache.commons.io.input.ReaderInputStream;
@@ -119,6 +120,11 @@ public class Test_AnnoSaveConverter
         {
           if(childChildContainer.getName().equals("INNER_getIntArray"))
           {
+            Assert.assertTrue(childChildContainer instanceof IMethodContainer); // "INNER_getIntArray" is a method -> MethodContainer
+            IType[] methodParameters = ((IMethodContainer) childChildContainer).getMethodParameters();
+            Assert.assertEquals(1, methodParameters.length);
+            Assert.assertEquals(methodParameters[0].getInstance(), String.class);
+
             IAnnotation[] annotations = childChildContainer.getAnnotations();
             Assert.assertEquals(1, annotations.length);
             IAnnotation obsoleteVersionsAnno = annotations[0];
