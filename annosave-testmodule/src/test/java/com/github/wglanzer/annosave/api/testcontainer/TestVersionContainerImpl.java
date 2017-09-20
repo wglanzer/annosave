@@ -40,13 +40,17 @@ public class TestVersionContainerImpl
 
     @ObsoleteVersions({
         @ObsoleteVersion(version = 0, pkgName = "inner_obso", id = "getDoubleArr", type = double[].class),
-        @ObsoleteVersion(version = 1, id = "getIntList", parameters = {double.class, int[].class})
+        @ObsoleteVersion(version = 1, id = "getIntList", parameters = {double.class, int[].class, MyClass.class})
     })
     public int[] INNER_getIntArray(String pParam)
     {
       return new int[0];
     }
 
+  }
+
+  public static final class MyClass
+  {
   }
 
 }

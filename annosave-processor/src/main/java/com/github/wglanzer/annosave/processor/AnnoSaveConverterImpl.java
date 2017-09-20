@@ -197,7 +197,7 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
       else if (ElementUtil.isMethod(element))
         className = ElementUtil.getClassName(((ExecutableElement) element).getReturnType());
       else
-        className = element.toString();
+        className = ElementUtil.flatName(element, element.toString());
       return TypeFactory.create(className);
     }
 

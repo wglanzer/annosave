@@ -1,8 +1,11 @@
 package com.github.wglanzer.annosave.processor;
 
-import javax.lang.model.element.Element;
+import org.jetbrains.annotations.Nullable;
+
+import javax.lang.model.element.*;
 import javax.lang.model.type.*;
 import javax.lang.model.util.ElementFilter;
+import java.lang.reflect.Method;
 import java.util.Collections;
 
 /**
@@ -35,7 +38,26 @@ public class ElementUtil
   {
     if(isArray(pType))
       return _getArrayClassName(((ArrayType) pType).getComponentType());
-    return pType.toString().replaceAll("<[^>]*>", "");
+
+    String defaultName = pType.toString().replaceAll("<[^>]*>", "");
+    if(pType instanceof DeclaredType)
+      return flatName(((DeclaredType) pType).asElement(), defaultName);
+    return defaultName;
+  }
+
+  @Nullable
+  public static String flatName(Element pElement, String pDefault)
+  {
+    try
+    {
+      Method meth = pElement.getClass().getDeclaredMethod("flatName");
+      meth.setAccessible(true);
+      return ((Name) meth.invoke(pElement)).toString();
+    }
+    catch(Exception e)
+    {
+      return pDefault;
+    }
   }
 
   private static String _getArrayClassName(TypeMirror componentType)

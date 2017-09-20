@@ -116,6 +116,11 @@ public class Test_AnnoSaveConverter
       }
       else if(childContainer.getName().equals("InnerClass"))
       {
+        if(pTestVersionContainerImplContainer.getName().endsWith("TestVersionContainerImpl"))
+        {
+          Assert.assertEquals(TestVersionContainerImpl.InnerClass.class, childContainer.getType().getInstance());
+        }
+
         for (IAnnotationContainer childChildContainer : childContainer.getChildren())
         {
           if(childChildContainer.getName().equals("INNER_getIntArray"))
@@ -151,7 +156,7 @@ public class Test_AnnoSaveConverter
             _assertParameter(anno1ChildParams.get("pkgName"), "pkgName", String.class, "");
             _assertParameter(anno1ChildParams.get("id"), "id", String.class, "getIntList");
             _assertParameter(anno1ChildParams.get("type"), "type", Class.class, Void.class);
-            _assertParameter(anno1ChildParams.get("parameters"), "parameters", Class[].class, new Class[]{double.class, int[].class});
+            _assertParameter(anno1ChildParams.get("parameters"), "parameters", Class[].class, new Class[]{double.class, int[].class, TestVersionContainerImpl.MyClass.class});
             checks++;
           }
         }
