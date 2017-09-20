@@ -212,12 +212,14 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
       return EContainerType.CLASS;
     }
 
+    @NotNull
     @Override
     public IAnnotation[] getAnnotations()
     {
       return _getAnnotations(element);
     }
 
+    @NotNull
     @Override
     public IAnnotationContainer[] getChildren()
     {

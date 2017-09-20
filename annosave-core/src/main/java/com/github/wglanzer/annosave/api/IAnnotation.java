@@ -44,4 +44,19 @@ public interface IAnnotation
         .findFirst().orElse(null);
   }
 
+  /**
+   * Returns the value of the parameter with the given name
+   *
+   * @param pParameterName Name of the parameter
+   * @return the value, or <tt>null</tt> if no parameter is found or the value is null
+   */
+  @Nullable
+  default Object getParameterValue(String pParameterName)
+  {
+    IAnnotationParameter param = findParameter(pParameterName);
+    if(param == null)
+      return null;
+    return param.getValue();
+  }
+
 }

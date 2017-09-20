@@ -38,12 +38,14 @@ public class SAnnotationContainer implements IAnnotationContainer
     return containerType;
   }
 
+  @NotNull
   @Override
   public IAnnotation[] getAnnotations()
   {
     return annotations;
   }
 
+  @NotNull
   @Override
   public IAnnotationContainer[] getChildren()
   {
