@@ -2,6 +2,7 @@ package com.github.wglanzer.annosave.impl.converter;
 
 import com.github.wglanzer.annosave.api.EContainerType;
 import com.github.wglanzer.annosave.impl.structure.*;
+import com.github.wglanzer.annosave.impl.util.TypeFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -23,7 +24,7 @@ class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
   {
     SAnnotationContainer container = new SAnnotationContainer();
     container.setName(pClass.getSimpleName());
-    container.setType(pClass);
+    container.setType(TypeFactory.create(pClass.getName()));
     container.setContainerType(EContainerType.CLASS);
     container.setAnnotations(Arrays.stream(pClass.getDeclaredAnnotations())
                                  .map(this::_convert)
@@ -45,7 +46,7 @@ class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
   {
     SAnnotationContainer container = new SAnnotationContainer();
     container.setName(pField.getName());
-    container.setType(null);
+    container.setType(TypeFactory.create(pField.getType().getName()));
     container.setContainerType(EContainerType.FIELD);
     container.setAnnotations(Arrays.stream(pField.getDeclaredAnnotations())
                                  .map(this::_convert)
@@ -57,7 +58,7 @@ class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
   {
     SAnnotationContainer container = new SAnnotationContainer();
     container.setName(pMethod.getName());
-    container.setType(null);
+    container.setType(TypeFactory.create(pMethod.getReturnType().getName()));
     container.setContainerType(EContainerType.METHOD);
     container.setAnnotations(Arrays.stream(pMethod.getDeclaredAnnotations())
                                  .map(this::_convert)
@@ -68,7 +69,7 @@ class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
   private SAnnotation _convert(Annotation pAnnotation)
   {
     SAnnotation annotation = new SAnnotation();
-    annotation.setType(pAnnotation.annotationType());
+    annotation.setType(TypeFactory.create(pAnnotation.annotationType().getName()));
     annotation.setName(pAnnotation.annotationType().getName());
 
     List<SAnnotationParameter> parameters = new ArrayList<>();
@@ -80,7 +81,7 @@ class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
         Object result = method.invoke(pAnnotation);
         SAnnotationParameter parameter = new SAnnotationParameter();
         parameter.setName(method.getName());
-        parameter.setType(method.getReturnType());
+        parameter.setType(TypeFactory.create(method.getReturnType().getName()));
 
         if (result.getClass().isArray())
         {
@@ -92,7 +93,7 @@ class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
           }
         }
 
-        parameter.setValue(result);
+        parameter.setOriginalValue(result);
         parameters.add(parameter);
       }
       catch (Exception e)

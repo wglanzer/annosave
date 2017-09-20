@@ -1,11 +1,14 @@
 package com.github.wglanzer.annosave.processor;
 
 import com.github.wglanzer.annosave.api.*;
+import com.github.wglanzer.annosave.impl.util.TypeFactory;
+import com.google.auto.common.AnnotationMirrors;
 import com.google.common.base.Predicates;
 import com.google.common.primitives.Primitives;
 import org.jetbrains.annotations.*;
 
 import javax.lang.model.element.*;
+import javax.lang.model.type.TypeMirror;
 import java.util.*;
 
 /**
@@ -16,34 +19,39 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
   @Override
   public IAnnotationContainer createContainer(Element pElement)
   {
-    if(_getChildren(pElement).length == 0 && _getAnnotations(pElement).length == 0)
+    if (_getChildren(pElement).length == 0 && _getAnnotations(pElement).length == 0)
       return null;
-    
+
     return new IAnnotationContainer()
     {
-      @Nullable
-      @Override
-      public Class<?> getType()
-      {
-        return null;
-      }
-
       @NotNull
       @Override
       public String getName()
       {
-        if(ElementUtil.isMethod(pElement))
-          return pElement.getSimpleName().toString();
-        return pElement.toString();
+        return pElement.getSimpleName().toString();
+      }
+
+      @NotNull
+      @Override
+      public IType getType()
+      {
+        String className;
+        if(ElementUtil.isField(pElement))
+          className = ElementUtil.getClassName(pElement.asType());
+        else if(ElementUtil.isMethod(pElement))
+          className = ElementUtil.getClassName(((ExecutableElement) pElement).getReturnType());
+        else
+          className = pElement.toString();
+        return TypeFactory.create(className);
       }
 
       @NotNull
       @Override
       public EContainerType getContainerType()
       {
-        if(ElementUtil.isMethod(pElement))
+        if (ElementUtil.isMethod(pElement))
           return EContainerType.METHOD;
-        else if(ElementUtil.isField(pElement))
+        else if (ElementUtil.isField(pElement))
           return EContainerType.FIELD;
         return EContainerType.CLASS;
       }
@@ -69,7 +77,7 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
     for (AnnotationMirror annotationMirror : pElement.getAnnotationMirrors())
     {
       IAnnotation anno = _toAnno(annotationMirror);
-      if(anno != null)
+      if (anno != null)
         annos.add(anno);
     }
     return annos.toArray(new IAnnotation[annos.size()]);
@@ -88,17 +96,11 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
   @Nullable
   private IAnnotation _toAnno(AnnotationMirror pMirror)
   {
-    if(!new PersistenceFilter().test(pMirror))
+    if (!new PersistenceFilter().test(pMirror))
       return null;
 
     return new IAnnotation()
     {
-      @Override
-      public Class<?> getType()
-      {
-        return null;
-      }
-
       @NotNull
       @Override
       public String getName()
@@ -106,35 +108,48 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
         return pMirror.getAnnotationType().toString();
       }
 
+      @NotNull
+      @Override
+      public IType getType()
+      {
+        return TypeFactory.create(pMirror.getAnnotationType().toString());
+      }
+
       @Override
       public IAnnotationParameter[] getParameters()
       {
         ArrayList<IAnnotationParameter> params = new ArrayList<>();
-        pMirror.getElementValues().forEach((pName, pValue) -> params.add(_toParameter(pName, pValue)));
+        AnnotationMirrors.getAnnotationValuesWithDefaults(pMirror).forEach((pName, pValue) -> params.add(_toParameter(pName, pValue)));
         return params.toArray(new IAnnotationParameter[params.size()]);
       }
     };
   }
 
   @NotNull
-  private IAnnotationParameter _toParameter(ExecutableElement pName, AnnotationValue pValue)
+  private IAnnotationParameter _toParameter(ExecutableElement pElement, AnnotationValue pValue)
   {
     return new IAnnotationParameter()
     {
       @Override
       public String getName()
       {
-        return pName.getSimpleName().toString();
+        return pElement.getSimpleName().toString();
       }
 
+      @NotNull
       @Override
-      public Class<?> getType()
+      public IType getType()
       {
-        return null;
+        return TypeFactory.create(ElementUtil.getClassName(pElement.getReturnType()));
       }
 
       @Override
       public Object getValue()
+      {
+        return _extractValueFromAnnotationValue(pValue);
+      }
+
+      private Object _extractValueFromAnnotationValue(AnnotationValue pValue)
       {
         Object value = pValue.getValue();
         if (value instanceof List)
@@ -148,17 +163,22 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
           else if (((List) value).get(0) instanceof AnnotationValue)
           {
             return ((List<AnnotationValue>) value).stream()
-                .map(pMirror -> pMirror.getValue().toString())
+                .map(this::_extractValueFromAnnotationValue)
                 .toArray(Object[]::new);
           }
         }
 
+        // Maybe it is a Class-Type? (int.class, String.class, ...)
+        if(value instanceof TypeMirror)
+          return ElementUtil.getClassName((TypeMirror) value);
+
+        // Already a correct value?
         if (value instanceof String ||
             value.getClass().isPrimitive() ||
             Primitives.isWrapperType(value.getClass()))
           return value;
 
-        return pValue.toString();
+        return value.toString();
       }
     };
   }

@@ -1,5 +1,7 @@
 package com.github.wglanzer.annosave.api;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * A single parameter/method of an annotation with the value set
  *
@@ -14,9 +16,10 @@ public interface IAnnotationParameter
   String getName();
 
   /**
-   * @return Returntype
+   * @return Returntype of the parameter
    */
-  Class<?> getType();
+  @NotNull
+  IType getType();
 
   /**
    * @return Specific value set in this annotationparameter.

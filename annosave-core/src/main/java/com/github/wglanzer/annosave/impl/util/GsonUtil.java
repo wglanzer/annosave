@@ -1,6 +1,6 @@
 package com.github.wglanzer.annosave.impl.util;
 
-import com.github.wglanzer.annosave.impl.structure.SAnnotationParameter;
+import com.github.wglanzer.annosave.impl.structure.*;
 import com.google.common.primitives.Primitives;
 import com.google.gson.*;
 
@@ -45,17 +45,17 @@ public class GsonUtil
     b.registerTypeAdapter(SAnnotationParameter.class, (JsonSerializer<SAnnotationParameter>) (src, typeOfSrc, context) -> {
       JsonObject obj = new JsonObject();
       obj.add("name", context.serialize(src.getName()));
-      obj.add("type", context.serialize(src.getType()));
-      obj.add("valuetype", context.serialize(src.getValue().getClass()));
-      obj.add("value", context.serialize(src.getValue()));
+      obj.add("classsource", context.serialize(src.getType()));
+      obj.add("valuetype", context.serialize(src.getOriginalValue().getClass()));
+      obj.add("value", context.serialize(src.getOriginalValue()));
       return obj;
     }).registerTypeAdapter(SAnnotationParameter.class, (JsonDeserializer<SAnnotationParameter>) (src, typeOfSrc, context) -> {
       JsonObject obj = src.getAsJsonObject();
       SAnnotationParameter parameter = new SAnnotationParameter();
       parameter.setName(context.deserialize(obj.get("name"), String.class));
-      parameter.setType(context.deserialize(obj.get("type"), Class.class));
+      parameter.setType(context.deserialize(obj.get("classsource"), SType.class));
       Class valuetype = context.deserialize(obj.get("valuetype"), Class.class);
-      parameter.setValue(context.deserialize(obj.get("value"), valuetype));
+      parameter.setOriginalValue(context.deserialize(obj.get("value"), valuetype));
       return parameter;
     });
 

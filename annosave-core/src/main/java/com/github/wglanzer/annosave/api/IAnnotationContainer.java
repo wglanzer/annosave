@@ -1,6 +1,6 @@
 package com.github.wglanzer.annosave.api;
 
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An AnnotationContainer is a container which contains annotations, cpt. obvious :)
@@ -12,18 +12,16 @@ public interface IAnnotationContainer
 {
 
   /**
-   * @return Type of this container. Mainly the class-reference to the object before.
-   * <tt>null</tt> if it could be resolved correctly
-   */
-  @Nullable
-  Class<?> getType();
-
-  /**
-   * @return Name of the container. Mainly the class-, method- or fieldname
+   * @return Name of the container
    */
   @NotNull
   String getName();
 
+  /**
+   * @return Type of this container
+   */
+  @NotNull
+  IType getType();
 
   /**
    * @return Type of the container

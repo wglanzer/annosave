@@ -1,7 +1,7 @@
 package com.github.wglanzer.annosave.impl.structure;
 
 import com.github.wglanzer.annosave.api.*;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -11,24 +11,24 @@ import java.util.*;
 public class SAnnotationContainer implements IAnnotationContainer
 {
 
-  private Class<?> type;
   private String name;
+  private SType type;
   private EContainerType containerType;
   private SAnnotation[] annotations;
   private SAnnotationContainer[] children;
-
-  @Nullable
-  @Override
-  public Class<?> getType()
-  {
-    return type;
-  }
 
   @NotNull
   @Override
   public String getName()
   {
     return name;
+  }
+
+  @NotNull
+  @Override
+  public IType getType()
+  {
+    return type;
   }
 
   @NotNull
@@ -55,7 +55,7 @@ public class SAnnotationContainer implements IAnnotationContainer
     name = pName;
   }
 
-  public void setType(Class<?> pType)
+  public void setType(SType pType)
   {
     type = pType;
   }

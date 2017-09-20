@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.*;
 
 import java.io.*;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,27 +34,60 @@ public class Test_AnnoSaveConverter
     AnnoSave.write(TestVersionContainerImpl.class, new WriterOutputStream(stringWriter, Charsets.UTF_8));
     IAnnotationContainer container = AnnoSave.read(new ReaderInputStream(new StringReader(stringWriter.toString())));
     Assert.assertEquals("TestVersionContainerImpl", container.getName());
+    _test_read(container);
+  }
 
+  @Test
+  public void test_writeReadZip() throws URISyntaxException
+  {
+    File zipFile = new File(new File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI()), "test_writeReadZip.zip");
+    IAnnotationContainer[] containersOrig = AnnoSaveGZip.write(new Class[]{TestVersionContainerImpl.class, TestVersionContainerImpl2.class}, zipFile);
+    IAnnotationContainer[] containersRead = AnnoSaveGZip.read(zipFile);
+    Assert.assertArrayEquals(containersOrig, containersRead);
+  }
+
+  @Test
+  public void test_annotationProcessor() throws URISyntaxException
+  {
+    File annosaveZip = new File(getClass().getResource("/annosave.zip").toURI());
+    IAnnotationContainer[] containers = AnnoSaveGZip.read(annosaveZip);
+    Assert.assertEquals(2, containers.length);
+    int checks = 0;
+    for (IAnnotationContainer container : containers)
+    {
+      if(Objects.equals(container.getType().getInstance(), TestVersionContainerImpl.class))
+      {
+        _test_read(container);
+        checks++;
+      }
+    }
+
+    Assert.assertEquals(1, checks);
+  }
+
+  private void _test_read(IAnnotationContainer pTestVersionContainerImplContainer)
+  {
     // Check Root-Annotation
-    IAnnotation[] rootAnnotations = container.getAnnotations();
+    IAnnotation[] rootAnnotations = pTestVersionContainerImplContainer.getAnnotations();
     Assert.assertEquals(1, rootAnnotations.length);
     IAnnotation obsoleteVersionContainerRoot = rootAnnotations[0];
-    Assert.assertEquals(ObsoleteVersionContainer.class, obsoleteVersionContainerRoot.getType());
+    Assert.assertEquals(ObsoleteVersionContainer.class, obsoleteVersionContainerRoot.getType().getInstance());
     IAnnotationParameter[] obsoleteVersionContainerRootParameters = obsoleteVersionContainerRoot.getParameters();
-    Assert.assertEquals(2, obsoleteVersionContainerRootParameters.length);
-    _assertParameter(obsoleteVersionContainerRootParameters[0], "pkgName", String.class, "container");
-    _assertParameter(obsoleteVersionContainerRootParameters[1], "category", String.class, "js");
+    Assert.assertEquals(3, obsoleteVersionContainerRootParameters.length);
+    Map<String, IAnnotationParameter> params = _toMap(obsoleteVersionContainerRootParameters);
+    _assertParameter(params.get("pkgName"), "pkgName", String.class, "container");
+    _assertParameter(params.get("category"), "category", String.class, "js");
 
     // Check "getIntArray"-Method
     int checks = 0;
-    for (IAnnotationContainer childContainer : container.getChildren())
+    for (IAnnotationContainer childContainer : pTestVersionContainerImplContainer.getChildren())
     {
       if(childContainer.getName().equals("getIntArray"))
       {
         IAnnotation[] annotations = childContainer.getAnnotations();
         Assert.assertEquals(1, annotations.length);
         IAnnotation obsoleteVersionsAnno = annotations[0];
-        Assert.assertEquals(ObsoleteVersions.class, obsoleteVersionsAnno.getType());
+        Assert.assertEquals(ObsoleteVersions.class, obsoleteVersionsAnno.getType().getInstance());
         IAnnotationParameter[] obsoleteVersionsAnnoParameters = obsoleteVersionsAnno.getParameters();
         Assert.assertEquals(1, obsoleteVersionsAnnoParameters.length);
         _assertParameter(obsoleteVersionsAnnoParameters[0], "value", ObsoleteVersion[].class, null);
@@ -88,7 +122,7 @@ public class Test_AnnoSaveConverter
             IAnnotation[] annotations = childChildContainer.getAnnotations();
             Assert.assertEquals(1, annotations.length);
             IAnnotation obsoleteVersionsAnno = annotations[0];
-            Assert.assertEquals(ObsoleteVersions.class, obsoleteVersionsAnno.getType());
+            Assert.assertEquals(ObsoleteVersions.class, obsoleteVersionsAnno.getType().getInstance());
             IAnnotationParameter[] obsoleteVersionsAnnoParameters = obsoleteVersionsAnno.getParameters();
             Assert.assertEquals(1, obsoleteVersionsAnnoParameters.length);
             _assertParameter(obsoleteVersionsAnnoParameters[0], "value", ObsoleteVersion[].class, null);
@@ -120,16 +154,6 @@ public class Test_AnnoSaveConverter
     Assert.assertEquals(2, checks);
   }
 
-  @Test
-  public void test_writeReadZip()
-  {
-    File zipFile = new File("target/classes/test.zip");
-    zipFile.deleteOnExit();
-    IAnnotationContainer[] containersOrig = AnnoSaveGZip.write(new Class[]{TestVersionContainerImpl.class, TestVersionContainerImpl2.class}, zipFile);
-    IAnnotationContainer[] containersRead = AnnoSaveGZip.read(zipFile);
-    Assert.assertArrayEquals(containersOrig, containersRead);
-  }
-
   private Map<String, IAnnotationParameter> _toMap(IAnnotationParameter[] pParameters)
   {
     return Arrays.stream(pParameters).collect(Collectors.toMap(IAnnotationParameter::getName, pParam -> pParam));
@@ -138,7 +162,7 @@ public class Test_AnnoSaveConverter
   private void _assertParameter(IAnnotationParameter pParameter, String pName, Class<?> pType, @Nullable Object pValue)
   {
     Assert.assertEquals(pName, pParameter.getName());
-    Assert.assertEquals(pType, pParameter.getType());
+    Assert.assertEquals(pType, pParameter.getType().getInstance());
     if(pValue != null)
     {
       if(pValue.getClass().isArray())

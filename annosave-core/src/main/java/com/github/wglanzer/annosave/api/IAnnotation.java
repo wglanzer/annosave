@@ -1,6 +1,6 @@
 package com.github.wglanzer.annosave.api;
 
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a single annotation-interface
@@ -11,17 +11,16 @@ public interface IAnnotation
 {
 
   /**
-   * @return Type of the annotation.
-   * Can be <tt>null</tt> if the type could not be resolved
-   */
-  @Nullable
-  Class<?> getType();
-
-  /**
    * @return Name of the annotation. Mainly the classname
    */
   @NotNull
   String getName();
+
+  /**
+   * @return Type of this annotation
+   */
+  @NotNull
+  IType getType();
 
   /**
    * @return all available parameters/methods of the representing annotation

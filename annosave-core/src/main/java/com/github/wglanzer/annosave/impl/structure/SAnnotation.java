@@ -11,15 +11,9 @@ import java.util.*;
 public class SAnnotation implements IAnnotation
 {
 
-  private Class<?> type;
   private String name;
+  private SType type;
   private SAnnotationParameter[] parameters;
-
-  @Override
-  public Class<?> getType()
-  {
-    return type;
-  }
 
   @NotNull
   @Override
@@ -28,20 +22,27 @@ public class SAnnotation implements IAnnotation
     return name;
   }
 
+  @NotNull
+  @Override
+  public IType getType()
+  {
+    return type;
+  }
+
   @Override
   public IAnnotationParameter[] getParameters()
   {
     return parameters;
   }
 
-  public void setType(Class<?> pType)
-  {
-    type = pType;
-  }
-
   public void setName(String pName)
   {
     name = pName;
+  }
+
+  public void setType(SType pType)
+  {
+    type = pType;
   }
 
   public void setParameters(SAnnotationParameter[] pParameters)

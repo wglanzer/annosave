@@ -1,6 +1,8 @@
 package com.github.wglanzer.annosave.impl.structure;
 
-import com.github.wglanzer.annosave.api.IAnnotationParameter;
+import com.github.wglanzer.annosave.api.*;
+import com.github.wglanzer.annosave.impl.util.TypeFactory;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -11,8 +13,9 @@ public class SAnnotationParameter implements IAnnotationParameter
 {
 
   private String name;
-  private Class<?> type;
-  private Object value;
+  private SType type;
+  private Object value; //ignored in Json
+  private Object originalValue;
 
   @Override
   public String getName()
@@ -20,8 +23,9 @@ public class SAnnotationParameter implements IAnnotationParameter
     return name;
   }
 
+  @NotNull
   @Override
-  public Class<?> getType()
+  public IType getType()
   {
     return type;
   }
@@ -29,7 +33,29 @@ public class SAnnotationParameter implements IAnnotationParameter
   @Override
   public Object getValue()
   {
+    if(value == null)
+    {
+      if (originalValue instanceof String && Class.class.equals(type.getInstance()))
+      {
+        value = TypeFactory.create(originalValue.toString()).getInstance();
+      }
+      else if ((originalValue instanceof Object[] && !(originalValue instanceof Class[])) &&
+          Class[].class.equals(type.getInstance()))
+      {
+        value = Arrays.stream((Object[]) originalValue)
+            .map(pObject -> TypeFactory.create(String.valueOf(pObject)).getInstance())
+            .toArray(Class[]::new);
+      }
+      else
+        value = originalValue;
+    }
+
     return value;
+  }
+
+  public Object getOriginalValue()
+  {
+    return originalValue;
   }
 
   public void setName(String pName)
@@ -37,14 +63,14 @@ public class SAnnotationParameter implements IAnnotationParameter
     name = pName;
   }
 
-  public void setType(Class<?> pType)
+  public void setType(SType pType)
   {
     type = pType;
   }
 
-  public void setValue(Object pValue)
+  public void setOriginalValue(Object pOriginalValue)
   {
-    value = pValue;
+    originalValue = pOriginalValue;
   }
 
   @Override
@@ -56,13 +82,13 @@ public class SAnnotationParameter implements IAnnotationParameter
     return Objects.equals(name, that.name) &&
         Objects.equals(type, that.type) &&
         (type.isArray() ?
-            Arrays.equals((Object[]) value, (Object[]) that.value) :
-            Objects.equals(value, that.value));
+            Arrays.equals((Object[]) originalValue, (Object[]) that.originalValue) :
+            Objects.equals(originalValue, that.originalValue));
   }
 
   @Override
   public int hashCode()
   {
-    return Objects.hash(name, type, value);
+    return Objects.hash(name, type, originalValue);
   }
 }
