@@ -32,11 +32,12 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
+        <version>3.3.0</version>
         <extensions>true</extensions>
         <configuration>
           <instructions>
             <Export-Package>com.github.wglanzer.annosave.api</Export-Package>
-            <Private-Package>com.github.wglanzer.annosave.*</Private-Package>
+            <Private-Package>com.github.wglanzer.annosave.impl</Private-Package>
           </instructions>
         </configuration>
       </plugin>
