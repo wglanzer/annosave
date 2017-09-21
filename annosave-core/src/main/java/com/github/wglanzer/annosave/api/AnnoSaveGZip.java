@@ -1,5 +1,6 @@
 package com.github.wglanzer.annosave.api;
 
+import org.apache.commons.io.input.CloseShieldInputStream;
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,6 +16,7 @@ import java.util.zip.*;
  *
  * @author W.Glanzer, 13.09.2017
  */
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class AnnoSaveGZip
 {
 
@@ -26,6 +28,7 @@ public class AnnoSaveGZip
    * @param pZipFile Path to zip-file
    * @return all created containers
    */
+  @NotNull
   public static IAnnotationContainer[] write(@NotNull Class<?>[] pClasses, @NotNull File pZipFile)
   {
     try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(pZipFile)))
@@ -55,7 +58,8 @@ public class AnnoSaveGZip
    * @param pZipFile   Path to zip-file
    * @return all created containers
    */
-  public static <T> IAnnotationContainer[] write(T[] pObjects, IAnnoSaveConverter<T> pConverter, @NotNull File pZipFile)
+  @NotNull
+  public static <T> IAnnotationContainer[] write(@NotNull T[] pObjects, @NotNull IAnnoSaveConverter<T> pConverter, @NotNull File pZipFile)
   {
     // Nothing to write -> no zip-file, empty array
     if(pObjects.length == 0)
@@ -94,6 +98,7 @@ public class AnnoSaveGZip
    * @param pZipFile File, which should be read
    * @return all containers
    */
+  @NotNull
   public static IAnnotationContainer[] read(@NotNull File pZipFile)
   {
     List<IAnnotationContainer> containers = new ArrayList<>();
@@ -106,6 +111,29 @@ public class AnnoSaveGZip
         InputStream inputStream = zipFile.getInputStream(entries.nextElement());
         containers.add(AnnoSave.read(inputStream));
       }
+      return containers.toArray(new IAnnotationContainer[containers.size()]);
+    }
+    catch (Exception e)
+    {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Reads all annotation-descriptions from an InputStream
+   *
+   * @param pStream Stream, which should be read
+   * @return all containers
+   */
+  @NotNull
+  public static IAnnotationContainer[] read(@NotNull InputStream pStream)
+  {
+    List<IAnnotationContainer> containers = new ArrayList<>();
+
+    try (ZipInputStream zipFile = new ZipInputStream(pStream))
+    {
+      while (zipFile.getNextEntry() != null)
+        containers.add(AnnoSave.read(new CloseShieldInputStream(zipFile)));
       return containers.toArray(new IAnnotationContainer[containers.size()]);
     }
     catch (Exception e)

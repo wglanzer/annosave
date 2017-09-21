@@ -48,6 +48,15 @@ public class Test_AnnoSaveConverter
   }
 
   @Test
+  public void test_writeReadZipInputStream() throws Exception
+  {
+    File zipFile = new File(new File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI()), "test_writeReadZipStream.zip");
+    IAnnotationContainer[] containersOrig = AnnoSaveGZip.write(new Class[]{TestVersionContainerImpl.class, TestVersionContainerImpl2.class}, zipFile);
+    IAnnotationContainer[] containersRead = AnnoSaveGZip.read(new FileInputStream(zipFile));
+    Assert.assertArrayEquals(containersOrig, containersRead);
+  }
+
+  @Test
   public void test_annotationProcessor() throws URISyntaxException
   {
     File annosaveZip = new File(getClass().getResource("/annosave.zip").toURI());
