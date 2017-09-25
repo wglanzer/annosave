@@ -11,7 +11,7 @@ import org.junit.*;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.stream.*;
 
 /**
  * @author W.Glanzer, 13.09.2017
@@ -23,8 +23,8 @@ public class Test_AnnoSaveConverter
   public void test_writeReadSimple()
   {
     StringWriter stringWriter = new StringWriter();
-    IAnnotationContainer createdContainer = AnnoSave.write(TestVersionContainerImpl.class, new WriterOutputStream(stringWriter, Charsets.UTF_8));
-    IAnnotationContainer readContainer = AnnoSave.read(new ReaderInputStream(new StringReader(stringWriter.toString())));
+    List<IAnnotationContainer> createdContainer = AnnoSave.write(TestVersionContainerImpl.class, new WriterOutputStream(stringWriter, Charsets.UTF_8));
+    List<IAnnotationContainer> readContainer = AnnoSave.read(new ReaderInputStream(new StringReader(stringWriter.toString())));
     Assert.assertEquals(createdContainer, readContainer);
   }
 
@@ -33,9 +33,9 @@ public class Test_AnnoSaveConverter
   {
     StringWriter stringWriter = new StringWriter();
     AnnoSave.write(TestVersionContainerImpl.class, new WriterOutputStream(stringWriter, Charsets.UTF_8));
-    IAnnotationContainer container = AnnoSave.read(new ReaderInputStream(new StringReader(stringWriter.toString())));
-    Assert.assertEquals("TestVersionContainerImpl", container.getName());
-    _test_read(container);
+    Map<String, IAnnotationContainer> containers = AnnoSave.readAsMap(new ReaderInputStream(new StringReader(stringWriter.toString())));
+    _test_TestVersionContainerImpl(containers.get(TestVersionContainerImpl.class.getName()));
+    _test_InnerClass(containers.get(TestVersionContainerImpl.InnerClass.class.getName()));
   }
 
   @Test
@@ -60,25 +60,58 @@ public class Test_AnnoSaveConverter
   public void test_annotationProcessor() throws URISyntaxException
   {
     File annosaveZip = new File(getClass().getResource("/annosave.zip").toURI());
-    IAnnotationContainer[] containers = AnnoSaveGZip.read(annosaveZip);
-    Assert.assertEquals(2, containers.length);
-    int checks = 0;
-    for (IAnnotationContainer container : containers)
-    {
-      if(Objects.equals(container.getType().getInstance(), TestVersionContainerImpl.class))
-      {
-        _test_read(container);
-        checks++;
-      }
-    }
-
-    Assert.assertEquals(1, checks);
+    Map<String, IAnnotationContainer> containers = AnnoSaveGZip.readAsMap(annosaveZip);
+    Assert.assertEquals(4, containers.size());
+    _test_TestVersionContainerImpl(containers.get(TestVersionContainerImpl.class.getName()));
+    _test_InnerClass(containers.get(TestVersionContainerImpl.InnerClass.class.getName()));
   }
 
-  private void _test_read(IAnnotationContainer pTestVersionContainerImplContainer)
+  private void _test_InnerClass(IAnnotationContainer pInnerClassRoot)
   {
+    Assert.assertNotNull(pInnerClassRoot);
+    Assert.assertEquals(TestVersionContainerImpl.InnerClass.class, pInnerClassRoot.getType().getInstance());
+
+    IAnnotationContainer mt_getIntArray = Stream.of(pInnerClassRoot.getChildren()).collect(Collectors.toMap(IAnnotationContainer::getName, pE -> pE)).get("INNER_getIntArray");
+    Assert.assertTrue(mt_getIntArray instanceof IMethodContainer); // "INNER_getIntArray" is a method -> MethodContainer
+    IType[] methodParameters = ((IMethodContainer) mt_getIntArray).getMethodParameters();
+    Assert.assertEquals(1, methodParameters.length);
+    Assert.assertEquals(methodParameters[0].getInstance(), String.class);
+
+    IAnnotation[] annotations = mt_getIntArray.getAnnotations();
+    Assert.assertEquals(1, annotations.length);
+    IAnnotation obsoleteVersionsAnno = annotations[0];
+    Assert.assertEquals(ObsoleteVersions.class, obsoleteVersionsAnno.getType().getInstance());
+    IAnnotationParameter[] obsoleteVersionsAnnoParameters = obsoleteVersionsAnno.getParameters();
+    Assert.assertEquals(1, obsoleteVersionsAnnoParameters.length);
+    _assertParameter(obsoleteVersionsAnnoParameters[0], "value", ObsoleteVersion[].class, null);
+    IAnnotation[] childAnnotations = (IAnnotation[]) obsoleteVersionsAnnoParameters[0].getValue();
+    Assert.assertEquals(2, childAnnotations.length);
+
+    // Annotation with index 0
+    Map<String, IAnnotationParameter> anno0ChildParams = _toMap(childAnnotations[0].getParameters());
+    Assert.assertEquals(5, anno0ChildParams.size());
+    _assertParameter(anno0ChildParams.get("version"), "version", int.class, 0);
+    _assertParameter(anno0ChildParams.get("pkgName"), "pkgName", String.class, "inner_obso");
+    _assertParameter(anno0ChildParams.get("id"), "id", String.class, "getDoubleArr");
+    _assertParameter(anno0ChildParams.get("type"), "type", Class.class, double[].class);
+    _assertParameter(anno0ChildParams.get("parameters"), "parameters", Class[].class, null);
+
+    // Annotation with index 1
+    Map<String, IAnnotationParameter> anno1ChildParams = _toMap(childAnnotations[1].getParameters());
+    Assert.assertEquals(5, anno0ChildParams.size());
+    _assertParameter(anno1ChildParams.get("version"), "version", int.class, 1);
+    _assertParameter(anno1ChildParams.get("pkgName"), "pkgName", String.class, "");
+    _assertParameter(anno1ChildParams.get("id"), "id", String.class, "getIntList");
+    _assertParameter(anno1ChildParams.get("type"), "type", Class.class, Void.class);
+    _assertParameter(anno1ChildParams.get("parameters"), "parameters", Class[].class, new Class[]{double.class, int[].class, TestVersionContainerImpl.MyClass.class});
+  }
+
+  private void _test_TestVersionContainerImpl(IAnnotationContainer pContainer)
+  {
+    Assert.assertNotNull(pContainer);
+
     // Check Root-Annotation
-    IAnnotation[] rootAnnotations = pTestVersionContainerImplContainer.getAnnotations();
+    IAnnotation[] rootAnnotations = pContainer.getAnnotations();
     Assert.assertEquals(1, rootAnnotations.length);
     IAnnotation obsoleteVersionContainerRoot = rootAnnotations[0];
     Assert.assertEquals(ObsoleteVersionContainer.class, obsoleteVersionContainerRoot.getType().getInstance());
@@ -89,89 +122,34 @@ public class Test_AnnoSaveConverter
     _assertParameter(params.get("category"), "category", String.class, "js");
 
     // Check "getIntArray"-Method
-    int checks = 0;
-    for (IAnnotationContainer childContainer : pTestVersionContainerImplContainer.getChildren())
-    {
-      if(childContainer.getName().equals("getIntArray"))
-      {
-        IAnnotation[] annotations = childContainer.getAnnotations();
-        Assert.assertEquals(1, annotations.length);
-        IAnnotation obsoleteVersionsAnno = annotations[0];
-        Assert.assertEquals(ObsoleteVersions.class, obsoleteVersionsAnno.getType().getInstance());
-        IAnnotationParameter[] obsoleteVersionsAnnoParameters = obsoleteVersionsAnno.getParameters();
-        Assert.assertEquals(1, obsoleteVersionsAnnoParameters.length);
-        _assertParameter(obsoleteVersionsAnnoParameters[0], "value", ObsoleteVersion[].class, null);
-        IAnnotation[] childAnnotations = (IAnnotation[]) obsoleteVersionsAnnoParameters[0].getValue();
-        Assert.assertEquals(2, childAnnotations.length);
+    IAnnotationContainer mt_getIntArray = Stream.of(pContainer.getChildren()).collect(Collectors.toMap(IAnnotationContainer::getName, pE -> pE)).get("getIntArray");
+    IAnnotation[] annotations = mt_getIntArray.getAnnotations();
+    Assert.assertEquals(1, annotations.length);
+    IAnnotation obsoleteVersionsAnno = annotations[0];
+    Assert.assertEquals(ObsoleteVersions.class, obsoleteVersionsAnno.getType().getInstance());
+    IAnnotationParameter[] obsoleteVersionsAnnoParameters = obsoleteVersionsAnno.getParameters();
+    Assert.assertEquals(1, obsoleteVersionsAnnoParameters.length);
+    _assertParameter(obsoleteVersionsAnnoParameters[0], "value", ObsoleteVersion[].class, null);
+    IAnnotation[] childAnnotations = (IAnnotation[]) obsoleteVersionsAnnoParameters[0].getValue();
+    Assert.assertEquals(2, childAnnotations.length);
 
-        // Annotation with index 0
-        Map<String, IAnnotationParameter> anno0ChildParams = _toMap(childAnnotations[0].getParameters());
-        Assert.assertEquals(5, anno0ChildParams.size());
-        _assertParameter(anno0ChildParams.get("version"), "version", int.class, 0);
-        _assertParameter(anno0ChildParams.get("pkgName"), "pkgName", String.class, "obso");
-        _assertParameter(anno0ChildParams.get("id"), "id", String.class, "getDoubleArr");
-        _assertParameter(anno0ChildParams.get("type"), "type", Class.class, double[].class);
-        _assertParameter(anno0ChildParams.get("parameters"), "parameters", Class[].class, null);
+    // Annotation with index 0
+    Map<String, IAnnotationParameter> anno0ChildParams = _toMap(childAnnotations[0].getParameters());
+    Assert.assertEquals(5, anno0ChildParams.size());
+    _assertParameter(anno0ChildParams.get("version"), "version", int.class, 0);
+    _assertParameter(anno0ChildParams.get("pkgName"), "pkgName", String.class, "obso");
+    _assertParameter(anno0ChildParams.get("id"), "id", String.class, "getDoubleArr");
+    _assertParameter(anno0ChildParams.get("type"), "type", Class.class, double[].class);
+    _assertParameter(anno0ChildParams.get("parameters"), "parameters", Class[].class, null);
 
-        // Annotation with index 1
-        Map<String, IAnnotationParameter> anno1ChildParams = _toMap(childAnnotations[1].getParameters());
-        Assert.assertEquals(5, anno0ChildParams.size());
-        _assertParameter(anno1ChildParams.get("version"), "version", int.class, 1);
-        _assertParameter(anno1ChildParams.get("pkgName"), "pkgName", String.class, "");
-        _assertParameter(anno1ChildParams.get("id"), "id", String.class, "getIntList");
-        _assertParameter(anno1ChildParams.get("type"), "type", Class.class, Void.class);
-        _assertParameter(anno1ChildParams.get("parameters"), "parameters", Class[].class, new Class[]{double.class, int[].class});
-        checks++;
-      }
-      else if(childContainer.getName().equals("InnerClass"))
-      {
-        if(pTestVersionContainerImplContainer.getName().endsWith("TestVersionContainerImpl"))
-        {
-          Assert.assertEquals(TestVersionContainerImpl.InnerClass.class, childContainer.getType().getInstance());
-        }
-
-        for (IAnnotationContainer childChildContainer : childContainer.getChildren())
-        {
-          if(childChildContainer.getName().equals("INNER_getIntArray"))
-          {
-            Assert.assertTrue(childChildContainer instanceof IMethodContainer); // "INNER_getIntArray" is a method -> MethodContainer
-            IType[] methodParameters = ((IMethodContainer) childChildContainer).getMethodParameters();
-            Assert.assertEquals(1, methodParameters.length);
-            Assert.assertEquals(methodParameters[0].getInstance(), String.class);
-
-            IAnnotation[] annotations = childChildContainer.getAnnotations();
-            Assert.assertEquals(1, annotations.length);
-            IAnnotation obsoleteVersionsAnno = annotations[0];
-            Assert.assertEquals(ObsoleteVersions.class, obsoleteVersionsAnno.getType().getInstance());
-            IAnnotationParameter[] obsoleteVersionsAnnoParameters = obsoleteVersionsAnno.getParameters();
-            Assert.assertEquals(1, obsoleteVersionsAnnoParameters.length);
-            _assertParameter(obsoleteVersionsAnnoParameters[0], "value", ObsoleteVersion[].class, null);
-            IAnnotation[] childAnnotations = (IAnnotation[]) obsoleteVersionsAnnoParameters[0].getValue();
-            Assert.assertEquals(2, childAnnotations.length);
-
-            // Annotation with index 0
-            Map<String, IAnnotationParameter> anno0ChildParams = _toMap(childAnnotations[0].getParameters());
-            Assert.assertEquals(5, anno0ChildParams.size());
-            _assertParameter(anno0ChildParams.get("version"), "version", int.class, 0);
-            _assertParameter(anno0ChildParams.get("pkgName"), "pkgName", String.class, "inner_obso");
-            _assertParameter(anno0ChildParams.get("id"), "id", String.class, "getDoubleArr");
-            _assertParameter(anno0ChildParams.get("type"), "type", Class.class, double[].class);
-            _assertParameter(anno0ChildParams.get("parameters"), "parameters", Class[].class, null);
-
-            // Annotation with index 1
-            Map<String, IAnnotationParameter> anno1ChildParams = _toMap(childAnnotations[1].getParameters());
-            Assert.assertEquals(5, anno0ChildParams.size());
-            _assertParameter(anno1ChildParams.get("version"), "version", int.class, 1);
-            _assertParameter(anno1ChildParams.get("pkgName"), "pkgName", String.class, "");
-            _assertParameter(anno1ChildParams.get("id"), "id", String.class, "getIntList");
-            _assertParameter(anno1ChildParams.get("type"), "type", Class.class, Void.class);
-            _assertParameter(anno1ChildParams.get("parameters"), "parameters", Class[].class, new Class[]{double.class, int[].class, TestVersionContainerImpl.MyClass.class});
-            checks++;
-          }
-        }
-      }
-    }
-    Assert.assertEquals(2, checks);
+    // Annotation with index 1
+    Map<String, IAnnotationParameter> anno1ChildParams = _toMap(childAnnotations[1].getParameters());
+    Assert.assertEquals(5, anno0ChildParams.size());
+    _assertParameter(anno1ChildParams.get("version"), "version", int.class, 1);
+    _assertParameter(anno1ChildParams.get("pkgName"), "pkgName", String.class, "");
+    _assertParameter(anno1ChildParams.get("id"), "id", String.class, "getIntList");
+    _assertParameter(anno1ChildParams.get("type"), "type", Class.class, Void.class);
+    _assertParameter(anno1ChildParams.get("parameters"), "parameters", Class[].class, new Class[]{double.class, int[].class});
   }
 
   private Map<String, IAnnotationParameter> _toMap(IAnnotationParameter[] pParameters)

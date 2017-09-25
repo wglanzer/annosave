@@ -6,12 +6,15 @@ import com.github.wglanzer.annosave.impl.structure.SAnnotationContainer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Contains all common API-Methods for AnnoSave
  *
  * @author W.Glanzer, 13.09.2017
  */
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class AnnoSave
 {
 
@@ -24,11 +27,11 @@ public class AnnoSave
    * @return a container representing all annotations inside pClass
    */
   @NotNull
-  public static IAnnotationContainer write(@NotNull Class<?> pClass, @NotNull OutputStream pOutputStream)
+  public static List<IAnnotationContainer> write(@NotNull Class<?> pClass, @NotNull OutputStream pOutputStream)
   {
-    SAnnotationContainer container = ConverterFactory.createDefaultConverter().convert(pClass);
-    new AnnoWriter(pOutputStream).write(container);
-    return container;
+    List<SAnnotationContainer> containers = ConverterFactory.createDefaultConverter().convert(pClass);
+    new AnnoWriter(pOutputStream).write(containers);
+    return Collections.unmodifiableList(containers);
   }
 
   /**
@@ -41,11 +44,11 @@ public class AnnoSave
    * @return a container representing all annotations inside pClass
    */
   @NotNull
-  public static <T> IAnnotationContainer write(T pRoot, IAnnoSaveConverter<T> pConverter, @NotNull OutputStream pOutputStream)
+  public static <T> List<IAnnotationContainer> write(T pRoot, IAnnoSaveConverter<T> pConverter, @NotNull OutputStream pOutputStream)
   {
-    SAnnotationContainer container = ConverterFactory.createConverter(pConverter).convert(pRoot);
-    new AnnoWriter(pOutputStream).write(container);
-    return container;
+    List<SAnnotationContainer> containers = ConverterFactory.createConverter(pConverter).convert(pRoot);
+    new AnnoWriter(pOutputStream).write(containers);
+    return Collections.unmodifiableList(containers);
   }
 
   /**
@@ -55,9 +58,22 @@ public class AnnoSave
    * @return the resulting container
    */
   @NotNull
-  public static IAnnotationContainer read(@NotNull InputStream pInputStream)
+  public static List<IAnnotationContainer> read(@NotNull InputStream pInputStream)
   {
-    return new AnnoReader(pInputStream).read();
+    return Collections.unmodifiableList(new AnnoReader(pInputStream).read());
+  }
+
+  /**
+   * Reads an inputStream and converts the JSON back to an IAnnotationContainer
+   *
+   * @param pInputStream Stream which should be read completely. Closed afterwards.
+   * @return the resulting containers as map with name as key
+   */
+  @NotNull
+  public static Map<String, IAnnotationContainer> readAsMap(@NotNull InputStream pInputStream)
+  {
+    List<IAnnotationContainer> list = read(pInputStream);
+    return list.stream().collect(Collectors.toMap(IAnnotationContainer::getName, pE -> pE));
   }
 
 }

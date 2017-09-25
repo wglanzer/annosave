@@ -11,6 +11,7 @@ import org.jetbrains.annotations.*;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
 import java.util.*;
+import java.util.stream.*;
 
 /**
  * @author W.Glanzer, 15.09.2017
@@ -18,14 +19,21 @@ import java.util.*;
 class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
 {
   @Override
-  public IAnnotationContainer createContainer(Element pElement)
+  public List<IAnnotationContainer> createContainer(Element pElement)
   {
     if (_getChildren(pElement).length == 0 && _getAnnotations(pElement).length == 0)
       return null;
 
+    ArrayList<IAnnotationContainer> result = new ArrayList<>();
     if (ElementUtil.isMethod(pElement))
-      return new _MethodContainer((ExecutableElement) pElement);
-    return new _AnnotationContainer(pElement);
+      result.add(new _MethodContainer((ExecutableElement) pElement));
+    else
+      result.add(new _AnnotationContainer(pElement));
+
+    // Child-Classes
+    if(ElementUtil.isType(pElement))
+      result.addAll(_getSubClasses(pElement));
+    return result;
   }
 
   @NotNull
@@ -45,10 +53,30 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
   private IAnnotationContainer[] _getChildren(Element pElement)
   {
     return pElement.getEnclosedElements().stream()
-        .filter(Predicates.not(ElementUtil::isConstructor))
-        .map(this::createContainer)
+        .filter(Predicates.not(ElementUtil::isConstructor).and(Predicates.not(ElementUtil::isType)))
+        .flatMap(pEle -> {
+          List<IAnnotationContainer> containers = createContainer(pEle);
+          if(containers == null)
+            return Stream.empty();
+          return containers.stream();
+        })
         .filter(Objects::nonNull)
         .toArray(IAnnotationContainer[]::new);
+  }
+
+  @NotNull
+  private List<IAnnotationContainer> _getSubClasses(Element pElement)
+  {
+    return pElement.getEnclosedElements().stream()
+        .filter(ElementUtil::isType)
+        .flatMap(pEle -> {
+          List<IAnnotationContainer> containers = createContainer(pEle);
+          if(containers == null)
+            return Stream.empty();
+          return containers.stream();
+        })
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 
   @Nullable
@@ -73,7 +101,7 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
   {
     private final AnnotationMirror mirror;
 
-    public _Annotation(AnnotationMirror pMirror)
+    _Annotation(AnnotationMirror pMirror)
     {
       mirror = pMirror;
     }
@@ -110,7 +138,7 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
     private final ExecutableElement element;
     private final AnnotationValue value;
 
-    public _AnnotationParameter(ExecutableElement pElement, AnnotationValue pValue)
+    _AnnotationParameter(ExecutableElement pElement, AnnotationValue pValue)
     {
       element = pElement;
       value = pValue;
@@ -175,7 +203,7 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
   {
     private final Element element;
 
-    public _AnnotationContainer(Element pElement)
+    _AnnotationContainer(Element pElement)
     {
       element = pElement;
     }
@@ -184,7 +212,11 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
     @Override
     public String getName()
     {
-      return element.getSimpleName().toString();
+      if(ElementUtil.isMethod(element))
+        return element.getSimpleName().toString();
+      else if(ElementUtil.isType(element))
+        return ElementUtil.getClassName(element.asType());
+      return element.toString();
     }
 
     @NotNull
@@ -223,7 +255,7 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
   {
     private final ExecutableElement element;
 
-    public _MethodContainer(ExecutableElement pElement)
+    _MethodContainer(ExecutableElement pElement)
     {
       super(pElement);
       element = pElement;

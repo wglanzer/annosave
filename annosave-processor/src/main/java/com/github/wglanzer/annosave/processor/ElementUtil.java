@@ -29,6 +29,11 @@ public class ElementUtil
     return !ElementFilter.constructorsIn(Collections.singleton(pElement)).isEmpty();
   }
 
+  public static boolean isType(Element pElement)
+  {
+    return !ElementFilter.typesIn(Collections.singleton(pElement)).isEmpty();
+  }
+
   public static boolean isArray(TypeMirror pType)
   {
     return pType instanceof ArrayType;

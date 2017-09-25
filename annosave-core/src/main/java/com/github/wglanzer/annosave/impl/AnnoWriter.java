@@ -2,9 +2,10 @@ package com.github.wglanzer.annosave.impl;
 
 import com.github.wglanzer.annosave.impl.structure.SAnnotationContainer;
 import com.github.wglanzer.annosave.impl.util.GsonUtil;
-import com.google.gson.Gson;
+import com.google.gson.*;
 
 import java.io.*;
+import java.util.List;
 
 /**
  * Writer for annotations
@@ -21,10 +22,13 @@ public class AnnoWriter
     stream = pStream;
   }
 
-  public void write(SAnnotationContainer pContainer)
+  public void write(List<SAnnotationContainer> pContainer)
   {
     Gson gson = GsonUtil.createGson();
-    String jsonString = gson.toJson(pContainer);
+
+    JsonArray topLevelArray = new JsonArray();
+    pContainer.forEach(pCont -> topLevelArray.add(gson.toJsonTree(pCont)));
+    String jsonString = gson.toJson(topLevelArray);
 
     try(OutputStreamWriter writer = new OutputStreamWriter(stream))
     {

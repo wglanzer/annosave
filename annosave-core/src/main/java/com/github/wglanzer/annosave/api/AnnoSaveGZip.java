@@ -9,6 +9,7 @@ import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
 import java.util.zip.*;
 
 /**
@@ -33,15 +34,15 @@ public class AnnoSaveGZip
   {
     try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(pZipFile)))
     {
-      IAnnotationContainer[] containers = new IAnnotationContainer[pClasses.length];
-      for (int i = 0; i < pClasses.length; i++)
+      List<IAnnotationContainer> containers = new ArrayList<>();
+      for (Class<?> pClass : pClasses)
       {
-        zipOutputStream.putNextEntry(new ZipEntry(pClasses[i].getName() + ".json"));
-        IAnnotationContainer container = AnnoSave.write(pClasses[i], new CloseShieldOutputStream(zipOutputStream));
+        zipOutputStream.putNextEntry(new ZipEntry(pClass.getName() + ".json"));
+        List<IAnnotationContainer> container = AnnoSave.write(pClass, new CloseShieldOutputStream(zipOutputStream));
         zipOutputStream.closeEntry();
-        containers[i] = container;
+        containers.addAll(container);
       }
-      return containers;
+      return containers.toArray(new IAnnotationContainer[containers.size()]);
     }
     catch (Exception e)
     {
@@ -72,18 +73,21 @@ public class AnnoSaveGZip
       env.put("encoding", "UTF-8");
       try (FileSystem zipFs = FileSystems.newFileSystem(URI.create("jar:" + pZipFile.toURI()), env))
       {
-        IAnnotationContainer[] containers = new IAnnotationContainer[pObjects.length];
-        for (int i = 0; i < pObjects.length; i++)
+        List<IAnnotationContainer> containers = new ArrayList<>();
+        for (T pObject : pObjects)
         {
           try (ByteArrayOutputStream baos = new ByteArrayOutputStream())
           {
-            IAnnotationContainer container = AnnoSave.write(pObjects[i], pConverter, baos);
-            Path file = zipFs.getPath("/" + container.getName() + ".json");
+            List<IAnnotationContainer> container = AnnoSave.write(pObject, pConverter, baos);
+            if (container.isEmpty())
+              continue;
+
+            Path file = zipFs.getPath("/" + container.get(0).getName() + ".json");
             Files.copy(new ByteArrayInputStream(baos.toByteArray()), file, StandardCopyOption.REPLACE_EXISTING);
-            containers[i] = container;
+            containers.addAll(container);
           }
         }
-        return containers;
+        return containers.toArray(new IAnnotationContainer[containers.size()]);
       }
     }
     catch(Exception e)
@@ -109,7 +113,7 @@ public class AnnoSaveGZip
       while (entries.hasMoreElements())
       {
         InputStream inputStream = zipFile.getInputStream(entries.nextElement());
-        containers.add(AnnoSave.read(inputStream));
+        containers.addAll(AnnoSave.read(inputStream));
       }
       return containers.toArray(new IAnnotationContainer[containers.size()]);
     }
@@ -133,13 +137,37 @@ public class AnnoSaveGZip
     try (ZipInputStream zipFile = new ZipInputStream(pStream))
     {
       while (zipFile.getNextEntry() != null)
-        containers.add(AnnoSave.read(new CloseShieldInputStream(zipFile)));
+        containers.addAll(AnnoSave.read(new CloseShieldInputStream(zipFile)));
       return containers.toArray(new IAnnotationContainer[containers.size()]);
     }
     catch (Exception e)
     {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Reads all annotation-descriptions from a .zip-File
+   *
+   * @param pZipFile File, which should be read
+   * @return all containers in a map with name as key
+   */
+  @NotNull
+  public static Map<String, IAnnotationContainer> readAsMap(@NotNull File pZipFile)
+  {
+    return Stream.of(read(pZipFile)).collect(Collectors.toMap(IAnnotationContainer::getName, pE -> pE));
+  }
+
+  /**
+   * Reads all annotation-descriptions from an InputStream
+   *
+   * @param pStream Stream, which should be read
+   * @return all containers in a map with name as key
+   */
+  @NotNull
+  public static Map<String, IAnnotationContainer> readAsMap(@NotNull InputStream pStream)
+  {
+    return Stream.of(read(pStream)).collect(Collectors.toMap(IAnnotationContainer::getName, pE -> pE));
   }
 
 }

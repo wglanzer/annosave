@@ -1,6 +1,5 @@
 package com.github.wglanzer.annosave.impl.converter;
 
-import com.github.wglanzer.annosave.api.EContainerType;
 import com.github.wglanzer.annosave.impl.structure.*;
 import com.github.wglanzer.annosave.impl.util.TypeFactory;
 
@@ -20,26 +19,27 @@ class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
    * @param pClass class which should be converted
    * @return container
    */
-  public SAnnotationContainer convert(Class<?> pClass)
+  public List<SAnnotationContainer> convert(Class<?> pClass)
   {
     SAnnotationContainer container = new SAnnotationContainer();
-    container.setName(pClass.getSimpleName());
+    container.setName(pClass.getName());
     container.setType(TypeFactory.create(pClass.getName()));
-    container.setContainerType(EContainerType.CLASS);
     container.setAnnotations(Arrays.stream(pClass.getDeclaredAnnotations())
                                  .map(this::_convert)
                                  .toArray(SAnnotation[]::new));
 
     List<SAnnotationContainer> children = new ArrayList<>();
-    for (Class<?> clazz : pClass.getDeclaredClasses())
-      children.add(convert(clazz));
     for (Field field : pClass.getDeclaredFields())
       children.add(_convert(field));
     for (Method method : pClass.getDeclaredMethods())
       children.add(_convert(method));
     container.setChildren(children.toArray(new SAnnotationContainer[children.size()]));
 
-    return container;
+    List<SAnnotationContainer> result = new ArrayList<>();
+    for (Class<?> clazz : pClass.getDeclaredClasses())
+      result.addAll(convert(clazz));
+    result.add(container);
+    return result;
   }
 
   private SAnnotationContainer _convert(Field pField)
@@ -47,7 +47,6 @@ class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
     SAnnotationContainer container = new SAnnotationContainer();
     container.setName(pField.getName());
     container.setType(TypeFactory.create(pField.getType().getName()));
-    container.setContainerType(EContainerType.FIELD);
     container.setAnnotations(Arrays.stream(pField.getDeclaredAnnotations())
                                  .map(this::_convert)
                                  .toArray(SAnnotation[]::new));
@@ -59,7 +58,6 @@ class DefaultSerializationConverter implements ISerializationConverter<Class<?>>
     SMethodContainer container = new SMethodContainer();
     container.setName(pMethod.getName());
     container.setType(TypeFactory.create(pMethod.getReturnType().getName()));
-    container.setContainerType(EContainerType.METHOD);
     container.setAnnotations(Arrays.stream(pMethod.getDeclaredAnnotations())
                                  .map(this::_convert)
                                  .toArray(SAnnotation[]::new));

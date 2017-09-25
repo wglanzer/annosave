@@ -2,9 +2,10 @@ package com.github.wglanzer.annosave.impl;
 
 import com.github.wglanzer.annosave.impl.structure.SAnnotationContainer;
 import com.github.wglanzer.annosave.impl.util.GsonUtil;
-import com.google.gson.Gson;
+import com.google.gson.*;
 
 import java.io.*;
+import java.util.*;
 
 /**
  * Reads an IAnnotationContainer from JSON
@@ -21,10 +22,14 @@ public class AnnoReader
     stream = pStream;
   }
 
-  public SAnnotationContainer read()
+  public List<SAnnotationContainer> read()
   {
     Gson gson = GsonUtil.createGson();
-    return gson.fromJson(new InputStreamReader(stream), SAnnotationContainer.class);
+    JsonArray rootArray = gson.fromJson(new InputStreamReader(stream), JsonArray.class);
+    List<SAnnotationContainer> containers = new ArrayList<>();
+    for (JsonElement element : rootArray)
+      containers.add(gson.fromJson(element, SAnnotationContainer.class));
+    return containers;
   }
 
 }
