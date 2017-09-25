@@ -26,12 +26,6 @@ public interface IAnnotationContainer
   IType getType();
 
   /**
-   * @return Type of the container
-   */
-  @NotNull
-  EContainerType getContainerType();
-
-  /**
    * @return all annotations on the container
    */
   @NotNull
