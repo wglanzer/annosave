@@ -88,22 +88,18 @@ public class Test_AnnoSaveConverter
     Assert.assertEquals(2, childAnnotations.length);
 
     // Annotation with index 0
-    Map<String, IAnnotationParameter> anno0ChildParams = _toMap(childAnnotations[0].getParameters());
-    Assert.assertEquals(5, anno0ChildParams.size());
-    _assertParameter(anno0ChildParams.get("version"), "version", int.class, 0);
-    _assertParameter(anno0ChildParams.get("pkgName"), "pkgName", String.class, "inner_obso");
-    _assertParameter(anno0ChildParams.get("id"), "id", String.class, "getDoubleArr");
-    _assertParameter(anno0ChildParams.get("type"), "type", Class.class, double[].class);
-    _assertParameter(anno0ChildParams.get("parameters"), "parameters", Class[].class, null);
+    _assertParameter(childAnnotations[0].getParameter("version"), "version", int.class, 0);
+    _assertParameter(childAnnotations[0].getParameter("pkgName"), "pkgName", String.class, "inner_obso");
+    _assertParameter(childAnnotations[0].getParameter("id"), "id", String.class, "getDoubleArr");
+    _assertParameter(childAnnotations[0].getParameter("type"), "type", Class.class, double[].class);
+    _assertParameter(childAnnotations[0].getParameter("parameters"), "parameters", Class[].class, null);
 
     // Annotation with index 1
-    Map<String, IAnnotationParameter> anno1ChildParams = _toMap(childAnnotations[1].getParameters());
-    Assert.assertEquals(5, anno0ChildParams.size());
-    _assertParameter(anno1ChildParams.get("version"), "version", int.class, 1);
-    _assertParameter(anno1ChildParams.get("pkgName"), "pkgName", String.class, "");
-    _assertParameter(anno1ChildParams.get("id"), "id", String.class, "getIntList");
-    _assertParameter(anno1ChildParams.get("type"), "type", Class.class, Void.class);
-    _assertParameter(anno1ChildParams.get("parameters"), "parameters", Class[].class, new Class[]{double.class, int[].class, TestVersionContainerImpl.MyClass.class});
+    _assertParameter(childAnnotations[1].getParameter("version"), "version", int.class, 1);
+    _assertParameter(childAnnotations[1].getParameter("pkgName"), "pkgName", String.class, "");
+    _assertParameter(childAnnotations[1].getParameter("id"), "id", String.class, "getIntList");
+    _assertParameter(childAnnotations[1].getParameter("type"), "type", Class.class, Void.class);
+    _assertParameter(childAnnotations[1].getParameter("parameters"), "parameters", Class[].class, new Class[]{double.class, int[].class, TestVersionContainerImpl.MyClass.class});
   }
 
   private void _test_TestVersionContainerImpl(IAnnotationContainer pContainer)
@@ -115,11 +111,8 @@ public class Test_AnnoSaveConverter
     Assert.assertEquals(1, rootAnnotations.length);
     IAnnotation obsoleteVersionContainerRoot = rootAnnotations[0];
     Assert.assertEquals(ObsoleteVersionContainer.class, obsoleteVersionContainerRoot.getType().getInstance());
-    IAnnotationParameter[] obsoleteVersionContainerRootParameters = obsoleteVersionContainerRoot.getParameters();
-    Assert.assertEquals(3, obsoleteVersionContainerRootParameters.length);
-    Map<String, IAnnotationParameter> params = _toMap(obsoleteVersionContainerRootParameters);
-    _assertParameter(params.get("pkgName"), "pkgName", String.class, "container");
-    _assertParameter(params.get("category"), "category", String.class, "js");
+    _assertParameter(obsoleteVersionContainerRoot.getParameter("pkgName"), "pkgName", String.class, "container");
+    _assertParameter(obsoleteVersionContainerRoot.getParameter("category"), "category", String.class, "js");
 
     // Check "getIntArray"-Method
     IAnnotationContainer mt_getIntArray = Stream.of(pContainer.getChildren()).collect(Collectors.toMap(IAnnotationContainer::getName, pE -> pE)).get("getIntArray");
@@ -127,34 +120,24 @@ public class Test_AnnoSaveConverter
     Assert.assertEquals(1, annotations.length);
     IAnnotation obsoleteVersionsAnno = annotations[0];
     Assert.assertEquals(ObsoleteVersions.class, obsoleteVersionsAnno.getType().getInstance());
-    IAnnotationParameter[] obsoleteVersionsAnnoParameters = obsoleteVersionsAnno.getParameters();
-    Assert.assertEquals(1, obsoleteVersionsAnnoParameters.length);
-    _assertParameter(obsoleteVersionsAnnoParameters[0], "value", ObsoleteVersion[].class, null);
-    IAnnotation[] childAnnotations = (IAnnotation[]) obsoleteVersionsAnnoParameters[0].getValue();
+    _assertParameter(obsoleteVersionsAnno.getParameter("value"), "value", ObsoleteVersion[].class, null);
+    IAnnotation[] childAnnotations = obsoleteVersionsAnno.getParameterValue("value", IAnnotation[].class);
+    Assert.assertNotNull(childAnnotations);
     Assert.assertEquals(2, childAnnotations.length);
 
     // Annotation with index 0
-    Map<String, IAnnotationParameter> anno0ChildParams = _toMap(childAnnotations[0].getParameters());
-    Assert.assertEquals(5, anno0ChildParams.size());
-    _assertParameter(anno0ChildParams.get("version"), "version", int.class, 0);
-    _assertParameter(anno0ChildParams.get("pkgName"), "pkgName", String.class, "obso");
-    _assertParameter(anno0ChildParams.get("id"), "id", String.class, "getDoubleArr");
-    _assertParameter(anno0ChildParams.get("type"), "type", Class.class, double[].class);
-    _assertParameter(anno0ChildParams.get("parameters"), "parameters", Class[].class, null);
+    _assertParameter(childAnnotations[0].getParameter("version"), "version", int.class, 0);
+    _assertParameter(childAnnotations[0].getParameter("pkgName"), "pkgName", String.class, "obso");
+    _assertParameter(childAnnotations[0].getParameter("id"), "id", String.class, "getDoubleArr");
+    _assertParameter(childAnnotations[0].getParameter("type"), "type", Class.class, double[].class);
+    _assertParameter(childAnnotations[0].getParameter("parameters"), "parameters", Class[].class, null);
 
     // Annotation with index 1
-    Map<String, IAnnotationParameter> anno1ChildParams = _toMap(childAnnotations[1].getParameters());
-    Assert.assertEquals(5, anno0ChildParams.size());
-    _assertParameter(anno1ChildParams.get("version"), "version", int.class, 1);
-    _assertParameter(anno1ChildParams.get("pkgName"), "pkgName", String.class, "");
-    _assertParameter(anno1ChildParams.get("id"), "id", String.class, "getIntList");
-    _assertParameter(anno1ChildParams.get("type"), "type", Class.class, Void.class);
-    _assertParameter(anno1ChildParams.get("parameters"), "parameters", Class[].class, new Class[]{double.class, int[].class});
-  }
-
-  private Map<String, IAnnotationParameter> _toMap(IAnnotationParameter[] pParameters)
-  {
-    return Arrays.stream(pParameters).collect(Collectors.toMap(IAnnotationParameter::getName, pParam -> pParam));
+    _assertParameter(childAnnotations[1].getParameter("version"), "version", int.class, 1);
+    _assertParameter(childAnnotations[1].getParameter("pkgName"), "pkgName", String.class, "");
+    _assertParameter(childAnnotations[1].getParameter("id"), "id", String.class, "getIntList");
+    _assertParameter(childAnnotations[1].getParameter("type"), "type", Class.class, Void.class);
+    _assertParameter(childAnnotations[1].getParameter("parameters"), "parameters", Class[].class, new Class[]{double.class, int[].class});
   }
 
   private void _assertParameter(IAnnotationParameter pParameter, String pName, Class<?> pType, @Nullable Object pValue)

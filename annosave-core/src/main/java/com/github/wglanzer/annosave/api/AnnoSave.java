@@ -3,6 +3,7 @@ package com.github.wglanzer.annosave.api;
 import com.github.wglanzer.annosave.impl.*;
 import com.github.wglanzer.annosave.impl.converter.ConverterFactory;
 import com.github.wglanzer.annosave.impl.structure.SAnnotationContainer;
+import org.apache.commons.io.output.NullOutputStream;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -19,6 +20,19 @@ public class AnnoSave
 {
 
   /**
+   * Converts all annotations for a class-object (including subclasses) into a list
+   * Those descriptions are made with JSON.
+   *
+   * @param pClass Class which should be read
+   * @return a list of containers representing all annotations inside pClass
+   */
+  @NotNull
+  public static List<IAnnotationContainer> write(@NotNull Class<?> pClass)
+  {
+    return write(pClass, new NullOutputStream());
+  }
+
+  /**
    * Writes all annotations for a class-object (including subclasses) to an outputStream.
    * Those descriptions are made with JSON.
    *
@@ -32,6 +46,20 @@ public class AnnoSave
     List<SAnnotationContainer> containers = ConverterFactory.createDefaultConverter().convert(pClass);
     new AnnoWriter(pOutputStream).write(containers);
     return Collections.unmodifiableList(containers);
+  }
+
+  /**
+   * Converts all annotations of an object.
+   * Those descriptions are made with JSON.
+   *
+   * @param pRoot      Root-Object which should be read
+   * @param pConverter Converter which describes, how the given object is disassembled to an serializable object
+   * @return a container representing all annotations inside pClass
+   */
+  @NotNull
+  public static <T> List<IAnnotationContainer> write(T pRoot, IAnnoSaveConverter<T> pConverter)
+  {
+    return write(pRoot, pConverter, new NullOutputStream());
   }
 
   /**

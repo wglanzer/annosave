@@ -39,9 +39,28 @@ public interface IAnnotation
   @Nullable
   default IAnnotationParameter findParameter(String pName)
   {
+    try
+    {
+      return getParameter(pName);
+    }
+    catch(NullPointerException npe)
+    {
+      return null;
+    }
+  }
+
+  /**
+   * Returns the parameter with the given name. NullPointerException if nothing is found
+   *
+   * @param pName Name of the searched parameter
+   * @return the parameter
+   */
+  @NotNull
+  default IAnnotationParameter getParameter(String pName)
+  {
     return Arrays.stream(getParameters())
         .filter(pParam -> pParam.getName().equals(pName))
-        .findFirst().orElse(null);
+        .findFirst().orElseThrow(NullPointerException::new);
   }
 
   /**
