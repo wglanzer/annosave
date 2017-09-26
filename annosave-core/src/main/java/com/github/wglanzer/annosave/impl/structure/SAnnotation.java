@@ -65,6 +65,6 @@ public class SAnnotation implements IAnnotation
   @Override
   public int hashCode()
   {
-    return Objects.hash(type, parameters);
+    return Arrays.deepHashCode(new Object[]{type, name, parameters});
   }
 }

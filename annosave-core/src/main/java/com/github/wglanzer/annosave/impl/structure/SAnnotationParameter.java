@@ -89,6 +89,6 @@ public class SAnnotationParameter implements IAnnotationParameter
   @Override
   public int hashCode()
   {
-    return Objects.hash(name, type, originalValue);
+    return Arrays.deepHashCode(new Object[]{type, name, type.isArray() ? (Object[]) originalValue : originalValue});
   }
 }

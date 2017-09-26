@@ -2,7 +2,6 @@ package com.github.wglanzer.annosave.impl.structure;
 
 import com.github.wglanzer.annosave.api.IType;
 import com.github.wglanzer.annosave.api.containers.IMethodContainer;
-import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -40,7 +39,8 @@ public class SMethodContainer extends SAnnotationContainer implements IMethodCon
   @Override
   public int hashCode()
   {
-    return Objects.hashCode(super.hashCode(), methodParameters);
+    return 31 * super.hashCode() +
+        Arrays.deepHashCode(new Object[]{methodParameters});
   }
 
 }

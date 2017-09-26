@@ -79,6 +79,6 @@ public class SAnnotationContainer implements IAnnotationContainer
   @Override
   public int hashCode()
   {
-    return Objects.hash(type, name, annotations, children);
+    return Arrays.deepHashCode(new Object[]{type, name, annotations, children});
   }
 }
