@@ -11,6 +11,7 @@
   </parent>
 
   <artifactId>annosave-core</artifactId>
+  <packaging>bundle</packaging>
   <name>AnnoSave: Core</name>
 
   <dependencies>
@@ -44,11 +45,10 @@
         <configuration>
           <instructions>
             <Export-Package>
-              com.github.wglanzer.annosave.api
+              com.github.wglanzer.annosave.api.*,
+              com.github.wglanzer.annosave.impl.*;x-friends:="com.github.wglanzer.annosave.annosave-processor"
             </Export-Package>
-            <Private-Package>
-              com.github.wglanzer.annosave.impl
-            </Private-Package>
+            <Private-Package>com.github.wglanzer.annosave.impl</Private-Package>
           </instructions>
         </configuration>
       </plugin>

@@ -11,6 +11,7 @@
   </parent>
 
   <artifactId>annosave-processor</artifactId>
+  <packaging>bundle</packaging>
   <name>AnnoSave: AnnotationProcessor</name>
 
   <dependencies>
@@ -55,8 +56,9 @@
         <artifactId>maven-bundle-plugin</artifactId>
         <configuration>
           <instructions>
-            <Export-Package>com.github.wglanzer.annosave.api</Export-Package>
-            <Private-Package>com.github.wglanzer.annosave.impl</Private-Package>
+            <Export-Package>com.github.wglanzer.annosave.processor.api</Export-Package>
+            <Private-Package>com.github.wglanzer.annosave.processor.impl</Private-Package>
+            <Import-Package>com.github.wglanzer.annosave.api.*</Import-Package>
           </instructions>
         </configuration>
       </plugin>
