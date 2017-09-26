@@ -32,6 +32,17 @@
   <build>
     <plugins>
       <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <compilerArgument>-proc:none</compilerArgument>
@@ -44,7 +55,8 @@
         <artifactId>maven-bundle-plugin</artifactId>
         <configuration>
           <instructions>
-            <Private-Package>com.github.wglanzer.annosave.*</Private-Package>
+            <Export-Package>com.github.wglanzer.annosave.api</Export-Package>
+            <Private-Package>com.github.wglanzer.annosave.impl</Private-Package>
           </instructions>
         </configuration>
       </plugin>

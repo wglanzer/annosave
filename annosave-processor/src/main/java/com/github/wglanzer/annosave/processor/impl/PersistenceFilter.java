@@ -1,5 +1,6 @@
-package com.github.wglanzer.annosave.processor;
+package com.github.wglanzer.annosave.processor.impl;
 
+import com.github.wglanzer.annosave.processor.api.AnnoPersist;
 import com.google.auto.common.AnnotationMirrors;
 
 import javax.lang.model.element.*;

@@ -1,4 +1,4 @@
-package com.github.wglanzer.annosave.processor;
+package com.github.wglanzer.annosave.processor.impl;
 
 import com.github.wglanzer.annosave.api.*;
 import com.github.wglanzer.annosave.api.containers.IMethodContainer;

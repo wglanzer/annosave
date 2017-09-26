@@ -1,4 +1,4 @@
-package com.github.wglanzer.annosave.processor;
+package com.github.wglanzer.annosave.processor.api;
 
 import java.lang.annotation.*;
 

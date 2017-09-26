@@ -1,4 +1,4 @@
-package com.github.wglanzer.annosave.processor;
+package com.github.wglanzer.annosave.processor.impl;
 
 import org.jetbrains.annotations.Nullable;
 
