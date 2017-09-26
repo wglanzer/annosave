@@ -11,7 +11,7 @@ import java.util.Collections;
 /**
  * @author W.Glanzer, 15.09.2017
  */
-public class ElementUtil
+class ElementUtil
 {
 
   public static boolean isMethod(Element pElement)
