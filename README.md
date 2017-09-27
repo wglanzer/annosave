@@ -8,7 +8,7 @@ The dependency is available in maven-central:
  <dependency>
      <groupId>com.github.wglanzer.annosave</groupId>
      <artifactId>annosave-core</artifactId>
-     <version>1.2.2</version>
+     <version>1.2.3</version>
  </dependency>
  ````
  
@@ -23,6 +23,6 @@ The dependency is available in maven-central:
   <dependency>
       <groupId>com.github.wglanzer.annosave</groupId>
       <artifactId>annosave-processor</artifactId>
-      <version>1.2.2</version>
+      <version>1.2.3</version>
   </dependency>
   ````

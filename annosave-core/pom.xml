@@ -7,11 +7,10 @@
   <parent>
     <groupId>com.github.wglanzer.annosave</groupId>
     <artifactId>annosave-parent</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.3</version>
   </parent>
 
   <artifactId>annosave-core</artifactId>
-  <packaging>bundle</packaging>
   <name>AnnoSave: Core</name>
 
   <dependencies>
