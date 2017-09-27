@@ -26,7 +26,6 @@
 
   <build>
     <plugins>
-
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <executions>
@@ -36,21 +35,6 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
-
-      <!-- OSGI -->
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <configuration>
-          <instructions>
-            <Export-Package>
-              com.github.wglanzer.annosave.api.*,
-              com.github.wglanzer.annosave.impl.*;x-friends:="com.github.wglanzer.annosave.annosave-processor"
-            </Export-Package>
-            <Private-Package>com.github.wglanzer.annosave.impl</Private-Package>
-          </instructions>
-        </configuration>
       </plugin>
     </plugins>
   </build>

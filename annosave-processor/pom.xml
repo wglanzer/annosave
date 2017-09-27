@@ -49,19 +49,6 @@
           <compilerArgument>-proc:none</compilerArgument>
         </configuration>
       </plugin>
-
-      <!-- OSGI -->
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <configuration>
-          <instructions>
-            <Export-Package>com.github.wglanzer.annosave.processor.api</Export-Package>
-            <Private-Package>com.github.wglanzer.annosave.processor.impl</Private-Package>
-            <Import-Package>com.github.wglanzer.annosave.api.*</Import-Package>
-          </instructions>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
 
