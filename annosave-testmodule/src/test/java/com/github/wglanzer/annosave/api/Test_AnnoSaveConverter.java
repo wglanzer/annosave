@@ -138,6 +138,20 @@ public class Test_AnnoSaveConverter
     _assertParameter(childAnnotations[1].getParameter("id"), "id", String.class, "getIntList");
     _assertParameter(childAnnotations[1].getParameter("type"), "type", Class.class, Void.class);
     _assertParameter(childAnnotations[1].getParameter("parameters"), "parameters", Class[].class, new Class[]{double.class, int[].class});
+
+    // check "testStrParams"-Method
+    IAnnotationContainer mt_testStrParams = Stream.of(pContainer.getChildren()).collect(Collectors.toMap(IAnnotationContainer::getName, pE -> pE)).get("testStrParams");
+    IAnnotation anno = mt_testStrParams.getAnnotation(ObsoleteVersions.class);
+    IAnnotation childVersions = anno.getParameterValue("value", IAnnotation[].class)[0];
+    IAnnotationParameter parameter = childVersions.getParameter("strParams");
+    Object value = parameter.getValue();
+    System.out.println(value.getClass());
+    Assert.assertTrue(value instanceof String[]);
+    String[] arr = (String[]) value;
+    Assert.assertTrue(arr.length == 3);
+    Assert.assertEquals("1", arr[0]);
+    Assert.assertEquals("2", arr[1]);
+    Assert.assertEquals("3", arr[2]);
   }
 
   private void _assertParameter(IAnnotationParameter pParameter, String pName, Class<?> pType, @Nullable Object pValue)

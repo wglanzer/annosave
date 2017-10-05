@@ -10,6 +10,7 @@ import org.jetbrains.annotations.*;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.*;
 
@@ -176,9 +177,24 @@ class AnnoSaveConverterImpl implements IAnnoSaveConverter<Element>
         }
         else if (((List) value).get(0) instanceof AnnotationValue)
         {
-          return ((List<AnnotationValue>) value).stream()
-              .map(this::_extractValueFromAnnotationValue)
-              .toArray(Object[]::new);
+          Class<?> arrayType = getType().getInstance();
+          if(arrayType == null || !arrayType.isArray())
+            throw new IllegalArgumentException("type not an array (type=" + arrayType + ")");
+
+          arrayType = arrayType.getComponentType();
+          Object arrInstance;
+          if(arrayType == Class.class)
+            // Workaround for classes, because they will be represented as a string
+            arrInstance = new String[((List) value).size()];
+          else
+            arrInstance = Array.newInstance(arrayType, ((List) value).size());
+
+          for (int i = 0; i < ((List<AnnotationValue>) value).size(); i++)
+          {
+            Object extractedValue = _extractValueFromAnnotationValue(((List<AnnotationValue>) value).get(i));
+            Array.set(arrInstance, i, extractedValue);
+          }
+          return arrInstance;
         }
       }
 

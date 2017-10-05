@@ -26,6 +26,14 @@ public class TestVersionContainerImpl
     return new int[0];
   }
 
+  @ObsoleteVersions({
+      @ObsoleteVersion(version = 0, id = "testStrParams", strParams = {"1", "2", "3"})
+  })
+  public int[] testStrParams(String pParam)
+  {
+    return new int[0];
+  }
+
   @ObsoleteVersionContainer(category = "js", pkgName = "inner_container")
   public static class InnerClass
   {

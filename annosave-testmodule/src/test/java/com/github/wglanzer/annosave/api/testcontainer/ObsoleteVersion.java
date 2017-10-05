@@ -19,4 +19,6 @@ public @interface ObsoleteVersion
 
   Class<?>[] parameters() default Void.class;
 
+  String[] strParams() default "";
+
 }
